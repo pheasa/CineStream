@@ -1,0 +1,5 @@
+{
+  "name": "CineStream - Free Movie Streaming",
+  "description": "A full-stack movie streaming platform with an admin dashboard for content management and a user-friendly interface for viewers.",
+  "requestFramePermissions": []
+}

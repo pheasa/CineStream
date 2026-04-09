@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/cinestream
       - NODE_ENV=production

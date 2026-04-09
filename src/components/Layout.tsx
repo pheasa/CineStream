@@ -4,6 +4,7 @@ import { Film, Search, Menu, X, LogOut } from 'lucide-react';
 import { cn } from '../lib/utils';
 import AdSense from './AdSense';
 import AdOverlay from './AdOverlay';
+import Logo from './Logo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -61,7 +62,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-2">
-                <Film className="w-8 h-8 text-indigo-500" />
+                <Logo className="w-8 h-8" />
                 <span className="text-xl font-bold tracking-tight">{appName}</span>
               </Link>
               <div className="hidden md:block ml-10">

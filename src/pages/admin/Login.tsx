@@ -1,12 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Film, AlertCircle } from 'lucide-react';
+import Logo from '../../components/Logo';
 
 export default function Login() {
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const navigate = useNavigate();
+
+  const appName = import.meta.env.VITE_APP_NAME || 'CineStream';
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +29,8 @@ export default function Login() {
     <div className="min-h-[80vh] flex items-center justify-center">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-8 shadow-2xl">
         <div className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mb-4">
-            <Film className="w-8 h-8 text-indigo-500" />
+          <div className="mx-auto w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 overflow-hidden p-3">
+            <Logo className="w-full h-full" />
           </div>
           <h1 className="text-3xl font-black tracking-tight">Admin Access</h1>
           <p className="text-slate-500">Please enter your credentials to continue</p>

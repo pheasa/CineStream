@@ -7,13 +7,17 @@ services:
       - .env
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/cinestream
-      - NODE_ENV=production
+      - NODE_ENV=development
       - VITE_APP_NAME=CineStream
-      # Add your AdSense variables here if needed
       - VITE_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX
+    # Override the command to use watch mode for development
+    command: npx tsx watch server.ts
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
 
   db:
     image: postgres:16-alpine

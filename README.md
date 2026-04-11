@@ -97,4 +97,5 @@ The easiest way to get started is using Docker Compose, which sets up both the a
    docker-compose up --build
    ```
 3. The application will be available at `http://localhost:3000`.
-4. The database will persist its data in a Docker volume named `postgres_data`.
+4. The project directory is mounted into the container at `/app`, allowing for easier development.
+5. The database will persist its data in a Docker volume named `postgres_data`.

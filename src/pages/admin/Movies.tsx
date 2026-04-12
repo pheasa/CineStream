@@ -37,6 +37,16 @@ export default function Movies() {
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
+    defaultValues: {
+      title: '',
+      thumbnail: '',
+      embedCode: '',
+      country: '',
+      category: '',
+      language: '',
+      subtitle: '',
+      tags: '',
+    }
   });
 
   const tagsValue = watch('tags') || '';
@@ -67,7 +77,7 @@ export default function Movies() {
       let finalData = { ...data };
 
       // If thumbnail is a temporary Litterbox URL, move it to Catbox
-      if (data.thumbnail.includes('litterbox.catbox.moe')) {
+      if (data.thumbnail && data.thumbnail.includes('litterbox.catbox.moe')) {
         try {
           const permanentUrl = await uploadToCatboxFromUrl(data.thumbnail);
           finalData.thumbnail = permanentUrl;
@@ -96,14 +106,14 @@ export default function Movies() {
 
   const handleEdit = (movie: Movie) => {
     setEditingMovie(movie);
-    setValue('title', movie.title);
-    setValue('thumbnail', movie.thumbnail);
-    setValue('embedCode', movie.embedCode);
-    setValue('country', movie.country);
-    setValue('category', movie.category);
-    setValue('language', movie.language);
-    setValue('subtitle', movie.subtitle);
-    setValue('tags', movie.tags);
+    setValue('title', movie.title, { shouldValidate: true });
+    setValue('thumbnail', movie.thumbnail, { shouldValidate: true });
+    setValue('embedCode', movie.embedCode, { shouldValidate: true });
+    setValue('country', movie.country, { shouldValidate: true });
+    setValue('category', movie.category, { shouldValidate: true });
+    setValue('language', movie.language, { shouldValidate: true });
+    setValue('subtitle', movie.subtitle, { shouldValidate: true });
+    setValue('tags', movie.tags, { shouldValidate: true });
     setIsModalOpen(true);
   };
 
@@ -121,10 +131,10 @@ export default function Movies() {
     setUploading(true);
     try {
       const url = await uploadToLitterbox(file);
-      setValue('thumbnail', url);
+      setValue('thumbnail', url, { shouldValidate: true, shouldDirty: true });
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Upload failed. Note: Catbox.moe might have CORS restrictions. If it fails, please provide a direct URL manually.');
+      alert('Upload failed. Please try again or provide a direct URL if the issue persists.');
     } finally {
       setUploading(false);
     }

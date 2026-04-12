@@ -1,22 +1,17 @@
 import React from 'react';
 import { Search as SearchIcon, SlidersHorizontal } from 'lucide-react';
-import { Movie, Category, Country } from '../types';
-import { movieService, categoryService, countryService } from '../services/api';
+import { Movie, Metadata } from '../types';
+import { movieService, metadataService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
 
 const ITEMS_PER_PAGE = 15;
 
-const LANGUAGES = [
-  'English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Korean', 
-  'Russian', 'Portuguese', 'Italian', 'Arabic', 'Hindi', 'Bengali', 'Thai', 
-  'Vietnamese', 'Indonesian', 'Turkish', 'Polish', 'Dutch', 'Swedish', 'None'
-];
-
 export default function Search() {
   const [allMovies, setAllMovies] = React.useState<Movie[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
-  const [countries, setCountries] = React.useState<Country[]>([]);
+  const [categories, setCategories] = React.useState<Metadata[]>([]);
+  const [countries, setCountries] = React.useState<Metadata[]>([]);
+  const [languages, setLanguages] = React.useState<Metadata[]>([]);
   const [filteredMovies, setFilteredMovies] = React.useState<Movie[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -30,14 +25,16 @@ export default function Search() {
   React.useEffect(() => {
     Promise.all([
       movieService.getAll(),
-      categoryService.getAll(),
-      countryService.getAll()
-    ]).then(([m, cat, cou]) => {
+      metadataService.getAll('category'),
+      metadataService.getAll('country'),
+      metadataService.getAll('language')
+    ]).then(([m, cat, cou, lang]) => {
       const sorted = [...m].reverse();
       setAllMovies(sorted);
       setFilteredMovies(sorted);
       setCategories(cat);
       setCountries(cou);
+      setLanguages(lang);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -134,7 +131,8 @@ export default function Search() {
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
               <option value="">All Speak</option>
-              {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+              {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+              <option value="None">None</option>
             </select>
           </div>
 
@@ -146,7 +144,8 @@ export default function Search() {
               onChange={(e) => setSelectedSubtitle(e.target.value)}
             >
               <option value="">All Subtitles</option>
-              {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+              {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+              <option value="None">None</option>
             </select>
           </div>
 

@@ -74,6 +74,7 @@ export default function MetadataPage() {
               className="bg-transparent border-none focus:ring-0 text-sm"
             >
               <option value="all">All Types</option>
+              <option value="category">Categories</option>
               <option value="language">Languages</option>
               <option value="country">Countries</option>
             </select>
@@ -141,6 +142,7 @@ export default function MetadataPage() {
                   value={type}
                   onChange={(e) => setType(e.target.value)}
                 >
+                  <option value="category">Category</option>
                   <option value="language">Language</option>
                   <option value="country">Country</option>
                 </select>

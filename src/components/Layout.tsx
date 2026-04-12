@@ -34,7 +34,6 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
   const adminNav = [
     { name: 'Dashboard', href: '/admin' },
     { name: 'Movies', href: '/admin/movies' },
-    { name: 'Categories', href: '/admin/categories' },
     { name: 'Metadata', href: '/admin/metadata' },
   ];
 

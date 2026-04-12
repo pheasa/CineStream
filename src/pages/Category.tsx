@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Movie, Category } from '../types';
-import { movieService, categoryService } from '../services/api';
+import { Movie, Metadata } from '../types';
+import { movieService, metadataService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import { ChevronRight, Filter } from 'lucide-react';
 import AdSense from '../components/AdSense';
@@ -12,12 +12,12 @@ const ITEMS_PER_PAGE = 12;
 export default function CategoryPage() {
   const { name } = useParams<{ name: string }>();
   const [movies, setMovies] = React.useState<Movie[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [currentPage, setCurrentPage] = React.useState(1);
 
   React.useEffect(() => {
-    Promise.all([movieService.getAll(), categoryService.getAll()])
+    Promise.all([movieService.getAll(), metadataService.getAll('category')])
       .then(([m, c]) => {
         setCategories(c);
         if (name) {

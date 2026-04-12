@@ -2,8 +2,8 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { movieService, categoryService, countryService, metadataService, uploadToLitterbox, uploadToCatboxFromUrl } from '../../services/api';
-import { Movie, Category, Country, Metadata } from '../../types';
+import { movieService, metadataService, uploadToLitterbox, uploadToCatboxFromUrl } from '../../services/api';
+import { Movie, Metadata } from '../../types';
 import { Plus, Search, Edit2, Trash2, X, Upload, Loader2, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import Pagination from '../../components/Pagination';
@@ -25,7 +25,7 @@ type MovieFormData = z.infer<typeof movieSchema>;
 
 export default function Movies() {
   const [movies, setMovies] = React.useState<Movie[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [countries, setCountries] = React.useState<Metadata[]>([]);
   const [languages, setLanguages] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -56,7 +56,7 @@ export default function Movies() {
     setLoading(true);
     Promise.all([
       movieService.getAll(),
-      categoryService.getAll(),
+      metadataService.getAll('category'),
       metadataService.getAll('country'),
       metadataService.getAll('language')
     ]).then(([m, cat, cou, lang]) => {
@@ -358,7 +358,7 @@ export default function Movies() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-400">Speak Language</label>
+                      <label className="text-sm font-medium text-slate-400">Speak</label>
                       <select
                         {...register('language')}
                         className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -371,7 +371,7 @@ export default function Movies() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-400">Subtitle Language</label>
+                      <label className="text-sm font-medium text-slate-400">Subtitle</label>
                       <select
                         {...register('subtitle')}
                         className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"

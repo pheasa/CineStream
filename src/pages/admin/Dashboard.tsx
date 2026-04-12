@@ -32,12 +32,12 @@ export default function Dashboard() {
       href: '/admin/movies'
     },
     { 
-      title: 'Categories', 
-      value: stats?.categories || 0, 
+      title: 'Metadata Items', 
+      value: stats?.metadata || 0, 
       icon: Tag, 
       color: 'text-purple-500', 
       bg: 'bg-purple-500/10',
-      href: '/admin/categories'
+      href: '/admin/metadata'
     },
   ];
 
@@ -81,13 +81,9 @@ export default function Dashboard() {
               <h3 className="font-semibold mb-1">Manage Movies</h3>
               <p className="text-xs text-slate-500">Add, edit or remove movies from the library.</p>
             </Link>
-            <Link to="/admin/categories" className="p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors border border-slate-700">
-              <h3 className="font-semibold mb-1">Manage Categories</h3>
-              <p className="text-xs text-slate-500">Organize movies by genre and type.</p>
-            </Link>
             <Link to="/admin/metadata" className="p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors border border-slate-700">
               <h3 className="font-semibold mb-1">Manage Metadata</h3>
-              <p className="text-xs text-slate-500">Manage languages and countries.</p>
+              <p className="text-xs text-slate-500">Manage categories, languages and countries.</p>
             </Link>
             <Link to="/" className="p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors border border-slate-700">
               <h3 className="font-semibold mb-1">View Website</h3>

@@ -9,7 +9,6 @@ import NotFound from './pages/NotFound';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminMovies from './pages/admin/Movies';
-import AdminCategories from './pages/admin/Categories';
 import AdminMetadata from './pages/admin/Metadata';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -33,7 +32,6 @@ export default function App() {
         <Route path="/admin/login" element={<Layout><AdminLogin /></Layout>} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/movies" element={<ProtectedRoute><AdminMovies /></ProtectedRoute>} />
-        <Route path="/admin/categories" element={<ProtectedRoute><AdminCategories /></ProtectedRoute>} />
         <Route path="/admin/metadata" element={<ProtectedRoute><AdminMetadata /></ProtectedRoute>} />
 
         {/* 404 Route */}

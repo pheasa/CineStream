@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Play, TrendingUp, Clock, ChevronRight } from 'lucide-react';
-import { Movie, Category } from '../types';
-import { movieService, categoryService } from '../services/api';
+import { Movie, Metadata } from '../types';
+import { movieService, metadataService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import { motion } from 'motion/react';
 import AdSense from '../components/AdSense';
@@ -11,13 +11,13 @@ import { Share2 } from 'lucide-react';
 
 export default function Home() {
   const [movies, setMovies] = React.useState<Movie[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   const [shareData, setShareData] = React.useState({ title: '', url: '' });
 
   React.useEffect(() => {
-    Promise.all([movieService.getAll(), categoryService.getAll()])
+    Promise.all([movieService.getAll(), metadataService.getAll('category')])
       .then(([m, c]) => {
         setMovies(m);
         setCategories(c);

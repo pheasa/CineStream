@@ -33,19 +33,9 @@ async function initDb() {
     const client = await pool.connect();
     try {
       await client.query(`
-        CREATE TABLE IF NOT EXISTS categories (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL UNIQUE
-        );
-
-        CREATE TABLE IF NOT EXISTS countries (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL UNIQUE
-        );
-
         CREATE TABLE IF NOT EXISTS metadata (
           id TEXT PRIMARY KEY,
-          type TEXT NOT NULL, -- 'country', 'language'
+          type TEXT NOT NULL, -- 'country', 'language', 'category'
           name TEXT NOT NULL,
           UNIQUE(type, name)
         );
@@ -65,29 +55,14 @@ async function initDb() {
         );
       `);
 
-      // Initial data for categories if empty
-      const catCount = await client.query('SELECT COUNT(*) FROM categories');
-      if (parseInt(catCount.rows[0].count) === 0) {
-        await client.query(`
-          INSERT INTO categories (id, name) VALUES
-          ('1', 'Action'), ('2', 'Comedy'), ('3', 'Drama'), ('4', 'Horror'), ('5', 'Sci-Fi')
-        `);
-      }
-
-      // Initial data for countries if empty
-      const countryCount = await client.query('SELECT COUNT(*) FROM countries');
-      if (parseInt(countryCount.rows[0].count) === 0) {
-        await client.query(`
-          INSERT INTO countries (id, name) VALUES
-          ('1', 'USA'), ('2', 'UK'), ('3', 'Canada'), ('4', 'France'), ('5', 'Japan')
-        `);
-      }
-
       // Initial data for metadata if empty
       const metaCount = await client.query('SELECT COUNT(*) FROM metadata');
       if (parseInt(metaCount.rows[0].count) === 0) {
         await client.query(`
           INSERT INTO metadata (id, type, name) VALUES
+          ('c1', 'category', 'Action'), ('c2', 'category', 'Comedy'), ('c3', 'category', 'Drama'), 
+          ('c4', 'category', 'Horror'), ('c5', 'category', 'Sci-Fi'), ('c6', 'category', 'Romance'),
+          ('c7', 'category', 'Thriller'), ('c8', 'category', 'Animation'), ('c9', 'category', 'Documentary'),
           ('AF', 'country', 'Afghanistan'), ('AX', 'country', 'land Islands'), ('AL', 'country', 'Albania'), 
           ('DZ', 'country', 'Algeria'), ('AS', 'country', 'American Samoa'), ('AD', 'country', 'AndorrA'), 
           ('AO', 'country', 'Angola'), ('AI', 'country', 'Anguilla'), ('AQ', 'country', 'Antarctica'), 
@@ -405,111 +380,7 @@ async function startServer() {
     }
   });
 
-  // Categories
-  app.get("/api/categories", async (req, res) => {
-    try {
-      const result = await pool.query('SELECT * FROM categories ORDER BY name ASC');
-      res.json(result.rows);
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  app.post("/api/categories", async (req, res) => {
-    const { name } = req.body;
-    const id = Date.now().toString();
-    try {
-      const result = await pool.query('INSERT INTO categories (id, name) VALUES ($1, $2) RETURNING *', [id, name]);
-      res.status(201).json(result.rows[0]);
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  app.put("/api/categories/:id", async (req, res) => {
-    const { name } = req.body;
-    try {
-      const result = await pool.query('UPDATE categories SET name = $1 WHERE id = $2 RETURNING *', [name, req.params.id]);
-      if (result.rows.length > 0) {
-        res.json(result.rows[0]);
-      } else {
-        res.status(404).json({ error: "Category not found" });
-      }
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  app.delete("/api/categories/:id", async (req, res) => {
-    try {
-      const catResult = await pool.query('SELECT name FROM categories WHERE id = $1', [req.params.id]);
-      if (catResult.rows.length === 0) return res.status(404).json({ error: "Category not found" });
-
-      const movieResult = await pool.query('SELECT COUNT(*) FROM movies WHERE category = $1', [catResult.rows[0].name]);
-      if (parseInt(movieResult.rows[0].count) > 0) {
-        return res.status(400).json({ error: "Cannot delete category with associated movies" });
-      }
-
-      await pool.query('DELETE FROM categories WHERE id = $1', [req.params.id]);
-      res.status(204).send();
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  // Countries
-  app.get("/api/countries", async (req, res) => {
-    try {
-      const result = await pool.query('SELECT * FROM countries ORDER BY name ASC');
-      res.json(result.rows);
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  app.post("/api/countries", async (req, res) => {
-    const { name } = req.body;
-    const id = Date.now().toString();
-    try {
-      const result = await pool.query('INSERT INTO countries (id, name) VALUES ($1, $2) RETURNING *', [id, name]);
-      res.status(201).json(result.rows[0]);
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  app.put("/api/countries/:id", async (req, res) => {
-    const { name } = req.body;
-    try {
-      const result = await pool.query('UPDATE countries SET name = $1 WHERE id = $2 RETURNING *', [name, req.params.id]);
-      if (result.rows.length > 0) {
-        res.json(result.rows[0]);
-      } else {
-        res.status(404).json({ error: "Country not found" });
-      }
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  app.delete("/api/countries/:id", async (req, res) => {
-    try {
-      const countryResult = await pool.query('SELECT name FROM countries WHERE id = $1', [req.params.id]);
-      if (countryResult.rows.length === 0) return res.status(404).json({ error: "Country not found" });
-
-      const movieResult = await pool.query('SELECT COUNT(*) FROM movies WHERE country = $1', [countryResult.rows[0].name]);
-      if (parseInt(movieResult.rows[0].count) > 0) {
-        return res.status(400).json({ error: "Cannot delete country with associated movies" });
-      }
-
-      await pool.query('DELETE FROM countries WHERE id = $1', [req.params.id]);
-      res.status(204).send();
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  // Metadata (Languages, Countries, etc.)
+  // Metadata (Languages, Countries, Categories, etc.)
   app.get("/api/metadata", async (req, res) => {
     const { type } = req.query;
     try {
@@ -631,13 +502,9 @@ async function startServer() {
   app.get("/api/stats", async (req, res) => {
     try {
       const movies = await pool.query('SELECT COUNT(*) FROM movies');
-      const categories = await pool.query('SELECT COUNT(*) FROM categories');
-      const countries = await pool.query('SELECT COUNT(*) FROM countries');
       const metadata = await pool.query('SELECT COUNT(*) FROM metadata');
       res.json({
         movies: parseInt(movies.rows[0].count),
-        categories: parseInt(categories.rows[0].count),
-        countries: parseInt(countries.rows[0].count),
         metadata: parseInt(metadata.rows[0].count)
       });
     } catch (err) {

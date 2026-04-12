@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Movie, Category, Country, Stats, Metadata } from '../types';
+import { Movie, Stats, Metadata } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -11,20 +11,6 @@ export const movieService = {
   create: (movie: Omit<Movie, 'id' | 'createdAt'>) => api.post<Movie>('/movies', { ...movie, createdAt: new Date().toISOString() }).then(res => res.data),
   update: (id: string, movie: Partial<Movie>) => api.put<Movie>(`/movies/${id}`, movie).then(res => res.data),
   delete: (id: string) => api.delete(`/movies/${id}`),
-};
-
-export const categoryService = {
-  getAll: () => api.get<Category[]>('/categories').then(res => res.data),
-  create: (name: string) => api.post<Category>('/categories', { name }).then(res => res.data),
-  update: (id: string, name: string) => api.put<Category>(`/categories/${id}`, { name }).then(res => res.data),
-  delete: (id: string) => api.delete(`/categories/${id}`),
-};
-
-export const countryService = {
-  getAll: () => api.get<Country[]>('/countries').then(res => res.data),
-  create: (name: string) => api.post<Country>('/countries', { name }).then(res => res.data),
-  update: (id: string, name: string) => api.put<Country>(`/countries/${id}`, { name }).then(res => res.data),
-  delete: (id: string) => api.delete(`/countries/${id}`),
 };
 
 export const metadataService = {

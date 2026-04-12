@@ -2,8 +2,8 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { movieService, categoryService, countryService, uploadToCatbox } from '../../services/api';
-import { Movie, Category, Country } from '../../types';
+import { movieService, categoryService, countryService, metadataService, uploadToCatbox } from '../../services/api';
+import { Movie, Category, Country, Metadata } from '../../types';
 import { Plus, Search, Edit2, Trash2, X, Upload, Loader2, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import Pagination from '../../components/Pagination';
@@ -19,12 +19,6 @@ const movieSchema = z.object({
   tags: z.string().min(1, 'At least one tag is required'),
 });
 
-const LANGUAGES = [
-  'English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Korean', 
-  'Russian', 'Portuguese', 'Italian', 'Arabic', 'Hindi', 'Bengali', 'Thai', 
-  'Vietnamese', 'Indonesian', 'Turkish', 'Polish', 'Dutch', 'Swedish', 'None'
-];
-
 const ITEMS_PER_PAGE = 10;
 
 type MovieFormData = z.infer<typeof movieSchema>;
@@ -32,7 +26,8 @@ type MovieFormData = z.infer<typeof movieSchema>;
 export default function Movies() {
   const [movies, setMovies] = React.useState<Movie[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
-  const [countries, setCountries] = React.useState<Country[]>([]);
+  const [countries, setCountries] = React.useState<Metadata[]>([]);
+  const [languages, setLanguages] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingMovie, setEditingMovie] = React.useState<Movie | null>(null);
@@ -51,11 +46,13 @@ export default function Movies() {
     Promise.all([
       movieService.getAll(),
       categoryService.getAll(),
-      countryService.getAll()
-    ]).then(([m, cat, cou]) => {
+      metadataService.getAll('country'),
+      metadataService.getAll('language')
+    ]).then(([m, cat, cou, lang]) => {
       setMovies([...m].reverse());
       setCategories(cat);
       setCountries(cou);
+      setLanguages(lang);
     }).finally(() => setLoading(false));
   };
 
@@ -279,13 +276,14 @@ export default function Movies() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-slate-400">Embed Code</label>
+                  <label className="text-sm font-medium text-slate-400">Embed Code / Rumble ID</label>
                   <textarea
                     {...register('embedCode')}
                     rows={4}
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
-                    placeholder='<iframe src="..." ...></iframe>'
+                    placeholder='Paste iframe code OR Rumble Video ID (e.g. v75wufu)'
                   />
+                  <p className="text-[10px] text-slate-500 italic">Tip: For Rumble, you can just paste the video ID like "v75wufu".</p>
                   {errors.embedCode && <p className="text-xs text-rose-500">{errors.embedCode.message}</p>}
                 </div>
 
@@ -320,7 +318,8 @@ export default function Movies() {
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                   >
                     <option value="">Select Language</option>
-                    {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                    {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+                    <option value="None">None</option>
                   </select>
                   {errors.language && <p className="text-xs text-rose-500">{errors.language.message}</p>}
                 </div>
@@ -332,7 +331,8 @@ export default function Movies() {
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                   >
                     <option value="">Select Subtitle</option>
-                    {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                    {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+                    <option value="None">None</option>
                   </select>
                   {errors.subtitle && <p className="text-xs text-rose-500">{errors.subtitle.message}</p>}
                 </div>

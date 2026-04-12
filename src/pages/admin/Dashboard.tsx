@@ -85,6 +85,10 @@ export default function Dashboard() {
               <h3 className="font-semibold mb-1">Manage Categories</h3>
               <p className="text-xs text-slate-500">Organize movies by genre and type.</p>
             </Link>
+            <Link to="/admin/metadata" className="p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors border border-slate-700">
+              <h3 className="font-semibold mb-1">Manage Metadata</h3>
+              <p className="text-xs text-slate-500">Manage languages and countries.</p>
+            </Link>
             <Link to="/" className="p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors border border-slate-700">
               <h3 className="font-semibold mb-1">View Website</h3>
               <p className="text-xs text-slate-500">See how the site looks for visitors.</p>

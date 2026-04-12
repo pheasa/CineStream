@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Movie, Category, Country, Stats } from '../types';
+import { Movie, Category, Country, Stats, Metadata } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -25,6 +25,13 @@ export const countryService = {
   create: (name: string) => api.post<Country>('/countries', { name }).then(res => res.data),
   update: (id: string, name: string) => api.put<Country>(`/countries/${id}`, { name }).then(res => res.data),
   delete: (id: string) => api.delete(`/countries/${id}`),
+};
+
+export const metadataService = {
+  getAll: (type?: string) => api.get<Metadata[]>('/metadata', { params: { type } }).then(res => res.data),
+  create: (type: string, name: string) => api.post<Metadata>('/metadata', { type, name }).then(res => res.data),
+  update: (id: string, type: string, name: string) => api.put<Metadata>(`/metadata/${id}`, { type, name }).then(res => res.data),
+  delete: (id: string) => api.delete(`/metadata/${id}`),
 };
 
 export const statsService = {

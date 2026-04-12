@@ -10,6 +10,7 @@ import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminMovies from './pages/admin/Movies';
 import AdminCategories from './pages/admin/Categories';
+import AdminMetadata from './pages/admin/Metadata';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = localStorage.getItem('admin_auth') === 'true';
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/movies" element={<ProtectedRoute><AdminMovies /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute><AdminCategories /></ProtectedRoute>} />
+        <Route path="/admin/metadata" element={<ProtectedRoute><AdminMetadata /></ProtectedRoute>} />
 
         {/* 404 Route */}
         <Route path="*" element={<Layout><NotFound /></Layout>} />

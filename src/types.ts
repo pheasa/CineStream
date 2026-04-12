@@ -22,8 +22,15 @@ export interface Country {
   name: string;
 }
 
+export interface Metadata {
+  id: string;
+  type: string;
+  name: string;
+}
+
 export interface Stats {
   movies: number;
   categories: number;
   countries: number;
+  metadata: number;
 }

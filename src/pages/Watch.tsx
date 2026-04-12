@@ -8,6 +8,7 @@ import { formatDate } from '../lib/utils';
 import AdSense from '../components/AdSense';
 import ShareModal from '../components/ShareModal';
 import AdOverlay from '../components/AdOverlay';
+import RumblePlayer from '../components/RumblePlayer';
 
 export default function Watch() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,12 @@ export default function Watch() {
   const [isInterstitialOpen, setIsInterstitialOpen] = React.useState(false);
 
   const currentUrl = window.location.href;
+
+  // Helper to determine if embedCode is a Rumble ID
+  const isRumbleId = (code: string) => {
+    // Simple check: if it's just alphanumeric and doesn't contain HTML tags
+    return /^[a-z0-9]+$/i.test(code.trim());
+  };
 
   React.useEffect(() => {
     if (id) {
@@ -78,10 +85,14 @@ export default function Watch() {
 
           {/* Video Player */}
           <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
-            <div 
-              className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
-              dangerouslySetInnerHTML={{ __html: movie.embedCode }}
-            />
+            {isRumbleId(movie.embedCode) ? (
+              <RumblePlayer videoId={movie.embedCode.trim()} />
+            ) : (
+              <div 
+                className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
+                dangerouslySetInnerHTML={{ __html: movie.embedCode }}
+              />
+            )}
           </div>
 
           {/* Bottom of Player Ad */}

@@ -273,171 +273,178 @@ export default function Movies() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-slate-400">Title</label>
-                  <input
-                    {...register('title')}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                    placeholder="Inception"
-                  />
-                  {errors.title && <p className="text-xs text-rose-500">{errors.title.message}</p>}
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-8">
+              <div className="flex flex-col md:flex-row gap-8">
+                {/* Left Column: Thumbnail */}
+                <div className="w-full md:w-48 shrink-0 space-y-2">
                   <label className="text-sm font-medium text-slate-400">Movie Thumbnail</label>
-                  <div className="flex items-start space-x-4">
-                    {thumbnailValue && (
-                      <div className="relative group">
+                  <div className="relative aspect-[2/3] w-full bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-700 overflow-hidden group transition-all hover:border-indigo-500/50">
+                    {thumbnailValue ? (
+                      <>
                         <img 
                           src={thumbnailValue} 
                           alt="Preview" 
-                          className="w-24 h-36 object-cover rounded-lg border border-slate-700 shadow-lg"
+                          className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                          <label className="cursor-pointer p-2 bg-indigo-600 rounded-full text-white hover:bg-indigo-500 transition-colors shadow-lg">
+                            <Upload className="w-5 h-5" />
+                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
+                          </label>
                           <button 
                             type="button"
-                            onClick={() => setValue('thumbnail', '')}
-                            className="p-1 bg-rose-500 rounded-full text-white hover:bg-rose-600 transition-colors"
+                            onClick={() => setValue('thumbnail', '', { shouldValidate: true })}
+                            className="p-2 bg-rose-500 rounded-full text-white hover:bg-rose-600 transition-colors shadow-lg"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-5 h-5" />
                           </button>
                         </div>
-                      </div>
-                    )}
-                    <div className={cn(
-                      "flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-xl p-6 transition-colors",
-                      !thumbnailValue ? "bg-slate-800/50 hover:bg-slate-800" : "bg-transparent"
-                    )}>
-                      <label className="cursor-pointer flex flex-col items-center space-y-2">
+                      </>
+                    ) : (
+                      <label className="cursor-pointer absolute inset-0 flex flex-col items-center justify-center p-4 text-center space-y-2 hover:bg-slate-800 transition-colors">
                         <div className="p-3 bg-indigo-500/10 rounded-full text-indigo-500">
                           {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
                         </div>
-                        <div className="text-center">
-                          <span className="text-sm font-medium text-slate-200">
-                            {uploading ? 'Uploading...' : thumbnailValue ? 'Change Image' : 'Upload Thumbnail'}
+                        <div>
+                          <span className="text-xs font-medium text-slate-300">
+                            {uploading ? 'Uploading...' : 'Upload Thumbnail'}
                           </span>
-                          <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 10MB</p>
+                          <p className="text-[10px] text-slate-500 mt-1">2:3 Ratio Recommended</p>
                         </div>
                         <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
                       </label>
-                    </div>
+                    )}
                   </div>
                   <input type="hidden" {...register('thumbnail')} />
                   {errors.thumbnail && <p className="text-xs text-rose-500">{errors.thumbnail.message}</p>}
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-slate-400">Embed Code / Rumble ID</label>
-                  <textarea
-                    {...register('embedCode')}
-                    rows={4}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
-                    placeholder='Paste iframe code OR Rumble Video ID (e.g. v75wufu)'
-                  />
-                  <p className="text-[10px] text-slate-500 italic">Tip: For Rumble, you can just paste the video ID like "v75wufu".</p>
-                  {errors.embedCode && <p className="text-xs text-rose-500">{errors.embedCode.message}</p>}
-                </div>
+                {/* Right Column: Main Fields */}
+                <div className="flex-1 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium text-slate-400">Title</label>
+                      <input
+                        {...register('title')}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="Inception"
+                      />
+                      {errors.title && <p className="text-xs text-rose-500">{errors.title.message}</p>}
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-400">Category</label>
-                  <select
-                    {...register('category')}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                  </select>
-                  {errors.category && <p className="text-xs text-rose-500">{errors.category.message}</p>}
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-400">Category</label>
+                      <select
+                        {...register('category')}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      </select>
+                      {errors.category && <p className="text-xs text-rose-500">{errors.category.message}</p>}
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-400">Country</label>
-                  <select
-                    {...register('country')}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  >
-                    <option value="">Select Country</option>
-                    {countries.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                  </select>
-                  {errors.country && <p className="text-xs text-rose-500">{errors.country.message}</p>}
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-400">Country</label>
+                      <select
+                        {...register('country')}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="">Select Country</option>
+                        {countries.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      </select>
+                      {errors.country && <p className="text-xs text-rose-500">{errors.country.message}</p>}
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-400">Speak Language</label>
-                  <select
-                    {...register('language')}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  >
-                    <option value="">Select Language</option>
-                    {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
-                    <option value="None">None</option>
-                  </select>
-                  {errors.language && <p className="text-xs text-rose-500">{errors.language.message}</p>}
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-400">Speak Language</label>
+                      <select
+                        {...register('language')}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="">Select Language</option>
+                        {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+                        <option value="None">None</option>
+                      </select>
+                      {errors.language && <p className="text-xs text-rose-500">{errors.language.message}</p>}
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-400">Subtitle Language</label>
-                  <select
-                    {...register('subtitle')}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  >
-                    <option value="">Select Subtitle</option>
-                    {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
-                    <option value="None">None</option>
-                  </select>
-                  {errors.subtitle && <p className="text-xs text-rose-500">{errors.subtitle.message}</p>}
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-400">Subtitle Language</label>
+                      <select
+                        {...register('subtitle')}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="">Select Subtitle</option>
+                        {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+                        <option value="None">None</option>
+                      </select>
+                      {errors.subtitle && <p className="text-xs text-rose-500">{errors.subtitle.message}</p>}
+                    </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-slate-400">Tags</label>
-                  <div className="flex flex-wrap gap-2 p-2 bg-slate-800 border border-slate-700 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
-                    {tagsValue.split(',').filter(Boolean).map((tag: string, index: number) => (
-                      <span key={index} className="flex items-center space-x-1 px-2 py-1 bg-indigo-600/20 border border-indigo-500/30 rounded text-xs text-indigo-300">
-                        <span>{tag.trim()}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentTags = tagsValue.split(',').filter(Boolean) || [];
-                            const newTags = currentTags.filter((_: any, i: number) => i !== index);
-                            setValue('tags', newTags.join(', '));
-                          }}
-                          className="hover:text-white transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                    <input
-                      type="text"
-                      className="flex-1 bg-transparent outline-none text-sm min-w-[120px]"
-                      placeholder="Add tag and press Enter..."
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ',') {
-                          e.preventDefault();
-                          const val = e.currentTarget.value.trim().replace(/,$/, '');
-                          if (val) {
-                            const currentTags = tagsValue.split(',').filter(Boolean) || [];
-                            if (!currentTags.includes(val)) {
-                              setValue('tags', currentTags.length > 0 ? `${tagsValue}, ${val}` : val);
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium text-slate-400">Tags</label>
+                      <div className="flex flex-wrap gap-2 p-2 bg-slate-800 border border-slate-700 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                        {tagsValue.split(',').filter(Boolean).map((tag: string, index: number) => (
+                          <span key={index} className="flex items-center space-x-1 px-2 py-1 bg-indigo-600/20 border border-indigo-500/30 rounded text-xs text-indigo-300">
+                            <span>{tag.trim()}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentTags = tagsValue.split(',').filter(Boolean) || [];
+                                const newTags = currentTags.filter((_: any, i: number) => i !== index);
+                                setValue('tags', newTags.join(', '));
+                              }}
+                              className="hover:text-white transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                        <input
+                          type="text"
+                          className="flex-1 bg-transparent outline-none text-sm min-w-[120px]"
+                          placeholder="Add tag and press Enter..."
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ',') {
+                              e.preventDefault();
+                              const val = e.currentTarget.value.trim().replace(/,$/, '');
+                              if (val) {
+                                const currentTags = tagsValue.split(',').filter(Boolean) || [];
+                                if (!currentTags.includes(val)) {
+                                  setValue('tags', currentTags.length > 0 ? `${tagsValue}, ${val}` : val);
+                                }
+                                e.currentTarget.value = '';
+                              }
+                            } else if (e.key === 'Backspace' && !e.currentTarget.value) {
+                              const currentTags = tagsValue.split(',').filter(Boolean) || [];
+                              if (currentTags.length > 0) {
+                                const newTags = currentTags.slice(0, -1);
+                                setValue('tags', newTags.join(', '));
+                              }
                             }
-                            e.currentTarget.value = '';
-                          }
-                        } else if (e.key === 'Backspace' && !e.currentTarget.value) {
-                          const currentTags = tagsValue.split(',').filter(Boolean) || [];
-                          if (currentTags.length > 0) {
-                            const newTags = currentTags.slice(0, -1);
-                            setValue('tags', newTags.join(', '));
-                          }
-                        }
-                      }}
-                    />
+                          }}
+                        />
+                      </div>
+                      <input type="hidden" {...register('tags')} />
+                      {errors.tags && <p className="text-xs text-rose-500">{errors.tags.message}</p>}
+                    </div>
                   </div>
-                  <input type="hidden" {...register('tags')} />
-                  {errors.tags && <p className="text-xs text-rose-500">{errors.tags.message}</p>}
                 </div>
+              </div>
+
+              {/* Bottom: Embed Code */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-400">Embed Code / Rumble ID</label>
+                <textarea
+                  {...register('embedCode')}
+                  rows={4}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
+                  placeholder='Paste iframe code OR Rumble Video ID (e.g. v75wufu)'
+                />
+                <p className="text-[10px] text-slate-500 italic">Tip: For Rumble, you can just paste the video ID like "v75wufu".</p>
+                {errors.embedCode && <p className="text-xs text-rose-500">{errors.embedCode.message}</p>}
               </div>
 
               <div className="flex items-center justify-end space-x-4 pt-4">

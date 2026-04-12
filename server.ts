@@ -49,10 +49,12 @@ async function initDb() {
           category TEXT NOT NULL,
           language TEXT NOT NULL,
           subtitle TEXT NOT NULL,
-          tags TEXT NOT NULL,
+          tags TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           featured BOOLEAN DEFAULT FALSE
         );
+
+        ALTER TABLE movies ALTER COLUMN tags DROP NOT NULL;
       `);
 
       // Initial data for metadata if empty

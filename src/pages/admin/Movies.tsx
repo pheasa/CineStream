@@ -16,7 +16,7 @@ const movieSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   language: z.string().min(1, 'Language is required'),
   subtitle: z.string().min(1, 'Subtitle is required'),
-  tags: z.string().min(1, 'At least one tag is required'),
+  tags: z.string().optional(),
 });
 
 const ITEMS_PER_PAGE = 10;

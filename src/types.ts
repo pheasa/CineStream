@@ -7,7 +7,7 @@ export interface Movie {
   category: string;
   language: string;
   subtitle: string;
-  tags: string;
+  tags?: string;
   createdAt: string;
   featured?: boolean;
 }

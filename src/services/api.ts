@@ -38,6 +38,18 @@ export const statsService = {
   get: () => api.get<Stats>('/stats').then(res => res.data),
 };
 
+export const uploadToLitterbox = (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post<{ url: string }>('/upload/litterbox', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(res => res.data.url);
+};
+
+export const uploadToCatboxFromUrl = (url: string) => {
+  return api.post<{ url: string }>('/upload/catbox', { url }).then(res => res.data.url);
+};
+
 export const uploadToCatbox = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('reqtype', 'fileupload');

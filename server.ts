@@ -4,8 +4,12 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import pg from 'pg';
+import multer from 'multer';
+import FormData from 'form-data';
+import axios from 'axios';
 
 const { Pool } = pg;
+const upload = multer({ storage: multer.memoryStorage() });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -554,6 +558,72 @@ async function startServer() {
       res.status(204).send();
     } catch (err) {
       res.status(500).json({ error: "Database error" });
+    }
+  });
+
+  // Upload Proxy Routes
+  app.post("/api/upload/litterbox", upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    try {
+      const formData = new FormData();
+      formData.append('reqtype', 'fileupload');
+      formData.append('time', '24h');
+      formData.append('fileToUpload', req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+      });
+
+      const response = await axios.post('https://litterbox.catbox.moe/resources/internals/api.php', formData, {
+        headers: formData.getHeaders(),
+      });
+
+      res.json({ url: response.data });
+    } catch (error) {
+      console.error('Litterbox upload error:', error);
+      res.status(500).json({ error: "Litterbox upload failed" });
+    }
+  });
+
+  app.post("/api/upload/catbox", async (req, res) => {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: "No URL provided" });
+
+    const userHash = process.env.CATBOX_USER_HASH || 'f7a6dc6f6e1e00e15d9136342';
+    const albumShort = 'be947l';
+
+    try {
+      // 1. Upload from URL to Catbox
+      const formData = new FormData();
+      formData.append('reqtype', 'urlupload');
+      formData.append('userhash', userHash);
+      formData.append('url', url);
+
+      const uploadResponse = await axios.post('https://catbox.moe/user/api.php', formData, {
+        headers: formData.getHeaders(),
+      });
+
+      const permanentUrl = uploadResponse.data;
+      if (typeof permanentUrl !== 'string' || !permanentUrl.startsWith('http')) {
+        throw new Error('Invalid response from Catbox: ' + permanentUrl);
+      }
+
+      // 2. Add to album
+      const fileName = permanentUrl.split('/').pop();
+      const albumData = new FormData();
+      albumData.append('reqtype', 'addtoalbum');
+      albumData.append('userhash', userHash);
+      albumData.append('short', albumShort);
+      albumData.append('files', fileName);
+
+      await axios.post('https://catbox.moe/user/api.php', albumData, {
+        headers: albumData.getHeaders(),
+      });
+
+      res.json({ url: permanentUrl });
+    } catch (error) {
+      console.error('Catbox upload/album error:', error);
+      res.status(500).json({ error: "Catbox processing failed" });
     }
   });
 

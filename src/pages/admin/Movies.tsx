@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { movieService, categoryService, countryService, metadataService, uploadToCatbox } from '../../services/api';
+import { movieService, categoryService, countryService, metadataService, uploadToLitterbox, uploadToCatboxFromUrl } from '../../services/api';
 import { Movie, Category, Country, Metadata } from '../../types';
 import { Plus, Search, Edit2, Trash2, X, Upload, Loader2, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -62,10 +62,24 @@ export default function Movies() {
 
   const onSubmit = async (data: MovieFormData) => {
     try {
+      setLoading(true);
+      let finalData = { ...data };
+
+      // If thumbnail is a temporary Litterbox URL, move it to Catbox
+      if (data.thumbnail.includes('litterbox.catbox.moe')) {
+        try {
+          const permanentUrl = await uploadToCatboxFromUrl(data.thumbnail);
+          finalData.thumbnail = permanentUrl;
+        } catch (error) {
+          console.error('Failed to move image to Catbox:', error);
+          // Continue with Litterbox URL if Catbox fails, though it will expire
+        }
+      }
+
       if (editingMovie) {
-        await movieService.update(editingMovie.id, data);
+        await movieService.update(editingMovie.id, finalData);
       } else {
-        await movieService.create(data);
+        await movieService.create(finalData);
       }
       setIsModalOpen(false);
       setEditingMovie(null);
@@ -74,6 +88,8 @@ export default function Movies() {
     } catch (error) {
       console.error('Failed to save movie:', error);
       alert('Failed to save movie');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,7 +119,7 @@ export default function Movies() {
 
     setUploading(true);
     try {
-      const url = await uploadToCatbox(file);
+      const url = await uploadToLitterbox(file);
       setValue('thumbnail', url);
     } catch (error) {
       console.error('Upload failed:', error);

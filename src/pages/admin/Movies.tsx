@@ -40,6 +40,7 @@ export default function Movies() {
   });
 
   const tagsValue = watch('tags') || '';
+  const thumbnailValue = watch('thumbnail') || '';
 
   const fetchData = () => {
     setLoading(true);
@@ -275,19 +276,46 @@ export default function Movies() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-slate-400">Thumbnail URL</label>
-                  <div className="flex space-x-2">
-                    <input
-                      {...register('thumbnail')}
-                      className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                    <label className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition-colors">
-                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      <span className="text-sm whitespace-nowrap">Upload to Catbox</span>
-                      <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
-                    </label>
+                  <label className="text-sm font-medium text-slate-400">Movie Thumbnail</label>
+                  <div className="flex items-start space-x-4">
+                    {thumbnailValue && (
+                      <div className="relative group">
+                        <img 
+                          src={thumbnailValue} 
+                          alt="Preview" 
+                          className="w-24 h-36 object-cover rounded-lg border border-slate-700 shadow-lg"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                          <button 
+                            type="button"
+                            onClick={() => setValue('thumbnail', '')}
+                            className="p-1 bg-rose-500 rounded-full text-white hover:bg-rose-600 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    <div className={cn(
+                      "flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-xl p-6 transition-colors",
+                      !thumbnailValue ? "bg-slate-800/50 hover:bg-slate-800" : "bg-transparent"
+                    )}>
+                      <label className="cursor-pointer flex flex-col items-center space-y-2">
+                        <div className="p-3 bg-indigo-500/10 rounded-full text-indigo-500">
+                          {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
+                        </div>
+                        <div className="text-center">
+                          <span className="text-sm font-medium text-slate-200">
+                            {uploading ? 'Uploading...' : thumbnailValue ? 'Change Image' : 'Upload Thumbnail'}
+                          </span>
+                          <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 10MB</p>
+                        </div>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
+                      </label>
+                    </div>
                   </div>
+                  <input type="hidden" {...register('thumbnail')} />
                   {errors.thumbnail && <p className="text-xs text-rose-500">{errors.thumbnail.message}</p>}
                 </div>
 

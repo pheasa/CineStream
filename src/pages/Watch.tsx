@@ -23,6 +23,7 @@ export default function Watch() {
 
   React.useEffect(() => {
     if (id) {
+      const startTime = Date.now();
       setLoading(true);
       movieService.getById(id)
         .then(m => {
@@ -38,8 +39,12 @@ export default function Watch() {
           } else {
             setRelatedMovies(all.filter(m => m.id !== numericId).slice(0, 5));
           }
+          
+          const elapsed = Date.now() - startTime;
+          const remaining = Math.max(0, 1200 - elapsed);
+          setTimeout(() => setLoading(false), remaining);
         })
-        .finally(() => setLoading(false));
+        .catch(() => setLoading(false));
     }
   }, [id, movie?.category]);
 

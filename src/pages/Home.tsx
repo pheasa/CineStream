@@ -19,6 +19,7 @@ export default function Home() {
   const [shareData, setShareData] = React.useState({ title: '', url: '' });
 
   React.useEffect(() => {
+    const startTime = Date.now();
     Promise.all([
       movieService.getAll({ limit: 20 }), 
       metadataService.getAll({ type: 'category', limit: 5 })
@@ -26,8 +27,12 @@ export default function Home() {
       .then(([m, c]) => {
         setMovies(m.data);
         setCategories(c.data);
+        
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 1200 - elapsed);
+        setTimeout(() => setLoading(false), remaining);
       })
-      .finally(() => setLoading(false));
+      .catch(() => setLoading(false));
   }, []);
 
   const featuredMovie = movies[0];

@@ -28,6 +28,7 @@ export default function CategoryPage() {
   }, [currentPage]);
 
   const fetchMovies = () => {
+    const startTime = Date.now();
     setLoading(true);
     movieService.getAll({
       page: currentPage,
@@ -36,7 +37,11 @@ export default function CategoryPage() {
     }).then(res => {
       setMovies(res.data);
       setTotalItems(res.total);
-    }).finally(() => setLoading(false));
+      
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 1000 - elapsed);
+      setTimeout(() => setLoading(false), remaining);
+    }).catch(() => setLoading(false));
   };
 
   const fetchMetadata = () => {

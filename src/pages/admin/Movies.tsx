@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { movieService, metadataService, uploadToLitterbox, uploadToCatboxFromUrl } from '../../services/api';
@@ -10,6 +10,7 @@ import { cn } from '../../lib/utils';
 import Pagination from '../../components/Pagination';
 import { useDebounce } from '../../hooks/useDebounce';
 import { QueryParams, FilterValues, DEFAULT_PAGINATION, MetadataTypes } from '../../constants';
+import SearchableSelect from '../../components/SearchableSelect';
 
 const movieSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -28,9 +29,6 @@ export default function Movies() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [movies, setMovies] = React.useState<Movie[]>([]);
   const [totalItems, setTotalItems] = React.useState(0);
-  const [categories, setCategories] = React.useState<Metadata[]>([]);
-  const [countries, setCountries] = React.useState<Metadata[]>([]);
-  const [languages, setLanguages] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingMovie, setEditingMovie] = React.useState<Movie | null>(null);
@@ -103,7 +101,7 @@ export default function Movies() {
     }
   }, [searchParams.get(QueryParams.ID)]);
 
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
+  const { register, handleSubmit, reset, setValue, watch, control, formState: { errors } } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
     defaultValues: {
       title: '',
@@ -134,22 +132,6 @@ export default function Movies() {
       setTotalItems(res.total);
     }).finally(() => setLoading(false));
   };
-
-  const fetchMetadata = () => {
-    Promise.all([
-      metadataService.getAll({ type: MetadataTypes.CATEGORY, limit: 100 }),
-      metadataService.getAll({ type: MetadataTypes.COUNTRY, limit: 100 }),
-      metadataService.getAll({ type: MetadataTypes.LANGUAGE, limit: 100 })
-    ]).then(([cat, cou, lang]) => {
-      setCategories(cat.data);
-      setCountries(cou.data);
-      setLanguages(lang.data);
-    });
-  };
-
-  React.useEffect(() => {
-    fetchMetadata();
-  }, []);
 
   React.useEffect(() => {
     fetchMovies();
@@ -274,38 +256,38 @@ export default function Movies() {
         
         <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
           <Filter className="w-4 h-4 text-slate-500" />
-          <select 
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-          </select>
+          <SearchableSelect
+            type={MetadataTypes.CATEGORY}
+            value={filterCategory === FilterValues.ALL ? '' : filterCategory}
+            onChange={(val) => setFilterCategory(val || FilterValues.ALL)}
+            placeholder="All Categories"
+            className="w-full"
+            staticOptions={[{ value: FilterValues.ALL, label: 'All Categories' }]}
+          />
         </div>
 
         <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
           <Filter className="w-4 h-4 text-slate-500" />
-          <select 
-            value={filterCountry}
-            onChange={(e) => setFilterCountry(e.target.value)}
-            className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full"
-          >
-            <option value="all">All Countries</option>
-            {countries.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-          </select>
+          <SearchableSelect
+            type={MetadataTypes.COUNTRY}
+            value={filterCountry === FilterValues.ALL ? '' : filterCountry}
+            onChange={(val) => setFilterCountry(val || FilterValues.ALL)}
+            placeholder="All Countries"
+            className="w-full"
+            staticOptions={[{ value: FilterValues.ALL, label: 'All Countries' }]}
+          />
         </div>
 
         <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
           <Filter className="w-4 h-4 text-slate-500" />
-          <select 
-            value={filterLanguage}
-            onChange={(e) => setFilterLanguage(e.target.value)}
-            className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full"
-          >
-            <option value="all">All Languages</option>
-            {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
-          </select>
+          <SearchableSelect
+            type={MetadataTypes.LANGUAGE}
+            value={filterLanguage === FilterValues.ALL ? '' : filterLanguage}
+            onChange={(val) => setFilterLanguage(val || FilterValues.ALL)}
+            placeholder="All Languages"
+            className="w-full"
+            staticOptions={[{ value: FilterValues.ALL, label: 'All Languages' }]}
+          />
         </div>
       </div>
 
@@ -491,52 +473,72 @@ export default function Movies() {
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-400">Category</label>
-                      <select
-                        {...register('category')}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                      >
-                        <option value="">Select Category</option>
-                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                      </select>
-                      {errors.category && <p className="text-xs text-rose-500">{errors.category.message}</p>}
+                      <Controller
+                        name="category"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            type={MetadataTypes.CATEGORY}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select Category"
+                            error={errors.category?.message}
+                          />
+                        )}
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-400">Country</label>
-                      <select
-                        {...register('country')}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                      >
-                        <option value="">Select Country</option>
-                        {countries.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                      </select>
-                      {errors.country && <p className="text-xs text-rose-500">{errors.country.message}</p>}
+                      <Controller
+                        name="country"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            type={MetadataTypes.COUNTRY}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select Country"
+                            error={errors.country?.message}
+                          />
+                        )}
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-400">Speak</label>
-                      <select
-                        {...register('language')}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                      >
-                        <option value="">Select Language</option>
-                        {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
-                        <option value="None">None</option>
-                      </select>
-                      {errors.language && <p className="text-xs text-rose-500">{errors.language.message}</p>}
+                      <Controller
+                        name="language"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            type={MetadataTypes.LANGUAGE}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select Language"
+                            error={errors.language?.message}
+                            staticOptions={[{ value: 'None', label: 'None' }]}
+                          />
+                        )}
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-400">Subtitle</label>
-                      <select
-                        {...register('subtitle')}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                      >
-                        <option value="">Select Subtitle</option>
-                        {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
-                        <option value="None">None</option>
-                      </select>
-                      {errors.subtitle && <p className="text-xs text-rose-500">{errors.subtitle.message}</p>}
+                      <Controller
+                        name="subtitle"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            type={MetadataTypes.LANGUAGE}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select Subtitle"
+                            error={errors.subtitle?.message}
+                            staticOptions={[{ value: 'None', label: 'None' }]}
+                          />
+                        )}
+                      />
                     </div>
 
                     <div className="space-y-2 md:col-span-2">

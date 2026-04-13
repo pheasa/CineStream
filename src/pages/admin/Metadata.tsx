@@ -14,7 +14,7 @@ export default function MetadataPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<Metadata | null>(null);
   const [name, setName] = React.useState('');
-  const [type, setType] = React.useState(MetadataTypes.LANGUAGE);
+  const [type, setType] = React.useState<MetadataTypes>(MetadataTypes.LANGUAGE);
 
   // Initialize state from URL
   const [filterType, setFilterType] = React.useState(searchParams.get(QueryParams.TYPE) || FilterValues.ALL);
@@ -124,7 +124,7 @@ export default function MetadataPage() {
   const handleEdit = (item: Metadata) => {
     setEditingItem(item);
     setName(item.name);
-    setType(item.type);
+    setType(item.type as MetadataTypes);
     setIsModalOpen(true);
 
     // Update URL if not already there
@@ -335,7 +335,7 @@ export default function MetadataPage() {
                 <select
                   className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
+                  onChange={(e) => setType(e.target.value as MetadataTypes)}
                 >
                   <option value={MetadataTypes.CATEGORY}>Category</option>
                   <option value={MetadataTypes.LANGUAGE}>Language</option>

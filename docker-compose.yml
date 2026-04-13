@@ -7,11 +7,7 @@ services:
       - .env
     environment:
       - NODE_ENV=${NODE_ENV:-development}
-    # Override the command to use watch mode for development
     command: npx tsx watch server.ts
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - .:/app
       - /app/node_modules
@@ -19,6 +15,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
     networks:
       - my-network
+
 networks:
   my-network:
     driver: bridge

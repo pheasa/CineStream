@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { metadataService } from '../../services/api';
 import { Metadata } from '../../types';
 import { Plus, Edit2, Trash2, Loader2, X, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useDebounce } from '../../hooks/useDebounce';
 
 export default function MetadataPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,22 +21,24 @@ export default function MetadataPage() {
   const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
   const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get('limit')) || 10);
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 800);
+
   // Update URL when state changes
   React.useEffect(() => {
     const params: any = {};
-    if (searchTerm) params.q = searchTerm;
+    if (debouncedSearchTerm) params.q = debouncedSearchTerm;
     if (filterType !== 'all') params.type = filterType;
     if (currentPage > 1) params.page = currentPage.toString();
     if (itemsPerPage !== 10) params.limit = itemsPerPage.toString();
     setSearchParams(params, { replace: true });
-  }, [searchTerm, filterType, currentPage, itemsPerPage]);
+  }, [debouncedSearchTerm, filterType, currentPage, itemsPerPage]);
 
   const fetchMetadata = () => {
     setLoading(true);
     metadataService.getAll({
       page: currentPage,
       limit: itemsPerPage,
-      search: searchTerm,
+      search: debouncedSearchTerm,
       type: filterType
     })
       .then(res => {
@@ -47,13 +50,13 @@ export default function MetadataPage() {
 
   React.useEffect(() => {
     fetchMetadata();
-  }, [currentPage, itemsPerPage, filterType, searchTerm]);
+  }, [currentPage, itemsPerPage, filterType, debouncedSearchTerm]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [filterType, searchTerm, itemsPerPage]);
+  }, [filterType, debouncedSearchTerm, itemsPerPage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

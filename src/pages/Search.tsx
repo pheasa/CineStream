@@ -5,6 +5,7 @@ import { Movie, Metadata } from '../types';
 import { movieService, metadataService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
+import { useDebounce } from '../hooks/useDebounce';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -25,24 +26,26 @@ export default function Search() {
   const [selectedLanguage, setSelectedLanguage] = React.useState(searchParams.get('language') || '');
   const [selectedSubtitle, setSelectedSubtitle] = React.useState(searchParams.get('subtitle') || '');
 
+  const debouncedQuery = useDebounce(query, 800);
+
   // Update URL when state changes
   React.useEffect(() => {
     const params: any = {};
-    if (query) params.q = query;
+    if (debouncedQuery) params.q = debouncedQuery;
     if (selectedCategory) params.category = selectedCategory;
     if (selectedCountry) params.country = selectedCountry;
     if (selectedLanguage) params.language = selectedLanguage;
     if (selectedSubtitle) params.subtitle = selectedSubtitle;
     if (currentPage > 1) params.page = currentPage.toString();
     setSearchParams(params, { replace: true });
-  }, [query, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle, currentPage]);
+  }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle, currentPage]);
 
   const fetchMovies = () => {
     setLoading(true);
     movieService.getAll({
       page: currentPage,
       limit: ITEMS_PER_PAGE,
-      search: query,
+      search: debouncedQuery,
       category: selectedCategory || 'all',
       country: selectedCountry || 'all',
       language: selectedLanguage || 'all'
@@ -70,13 +73,13 @@ export default function Search() {
 
   React.useEffect(() => {
     fetchMovies();
-  }, [query, selectedCategory, selectedCountry, selectedLanguage, currentPage]);
+  }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, currentPage]);
 
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [query, selectedCategory, selectedCountry, selectedLanguage]);
+  }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage]);
 
   if (loading) {
     return (

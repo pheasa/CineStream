@@ -8,6 +8,7 @@ import { Movie, Metadata } from '../../types';
 import { Plus, Search, Edit2, Trash2, X, Upload, Loader2, ExternalLink, Filter } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import Pagination from '../../components/Pagination';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const movieSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -44,17 +45,19 @@ export default function Movies() {
   const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
   const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get('limit')) || 10);
 
+  const debouncedSearchQuery = useDebounce(searchQuery, 800);
+
   // Update URL when state changes
   React.useEffect(() => {
     const params: any = {};
-    if (searchQuery) params.q = searchQuery;
+    if (debouncedSearchQuery) params.q = debouncedSearchQuery;
     if (filterCategory !== 'all') params.category = filterCategory;
     if (filterCountry !== 'all') params.country = filterCountry;
     if (filterLanguage !== 'all') params.language = filterLanguage;
     if (currentPage > 1) params.page = currentPage.toString();
     if (itemsPerPage !== 10) params.limit = itemsPerPage.toString();
     setSearchParams(params, { replace: true });
-  }, [searchQuery, filterCategory, filterCountry, filterLanguage, currentPage, itemsPerPage]);
+  }, [debouncedSearchQuery, filterCategory, filterCountry, filterLanguage, currentPage, itemsPerPage]);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
@@ -78,7 +81,7 @@ export default function Movies() {
     movieService.getAll({
       page: currentPage,
       limit: itemsPerPage,
-      search: searchQuery,
+      search: debouncedSearchQuery,
       category: filterCategory,
       country: filterCountry,
       language: filterLanguage
@@ -106,7 +109,7 @@ export default function Movies() {
 
   React.useEffect(() => {
     fetchMovies();
-  }, [currentPage, itemsPerPage, searchQuery, filterCategory, filterCountry, filterLanguage]);
+  }, [currentPage, itemsPerPage, debouncedSearchQuery, filterCategory, filterCountry, filterLanguage]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -181,7 +184,7 @@ export default function Movies() {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterCategory, filterCountry, filterLanguage, itemsPerPage]);
+  }, [debouncedSearchQuery, filterCategory, filterCountry, filterLanguage, itemsPerPage]);
 
   return (
     <div className="space-y-8">

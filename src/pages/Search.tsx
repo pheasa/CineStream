@@ -116,52 +116,52 @@ export default function Search() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
-            <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap md:justify-center">
+          <div className="flex items-center shrink-0 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-slate-500">
+            <SlidersHorizontal className="w-4 h-4" />
+          </div>
+
+          <div className="shrink-0 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
             <select
-              className="bg-transparent focus:outline-none text-sm"
+              className="bg-transparent focus:outline-none text-sm appearance-none cursor-pointer pr-2"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
-              <option value="">All Categories</option>
+              <option value="">Categories</option>
               {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
           </div>
 
-          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
-            <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+          <div className="shrink-0 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
             <select
-              className="bg-transparent focus:outline-none text-sm"
+              className="bg-transparent focus:outline-none text-sm appearance-none cursor-pointer pr-2"
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
             >
-              <option value="">All Countries</option>
+              <option value="">Countries</option>
               {countries.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
           </div>
 
-          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
-            <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+          <div className="shrink-0 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
             <select
-              className="bg-transparent focus:outline-none text-sm"
+              className="bg-transparent focus:outline-none text-sm appearance-none cursor-pointer pr-2"
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
-              <option value="">All Speak</option>
+              <option value="">Speak</option>
               {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
               <option value="None">None</option>
             </select>
           </div>
 
-          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
-            <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+          <div className="shrink-0 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
             <select
-              className="bg-transparent focus:outline-none text-sm"
+              className="bg-transparent focus:outline-none text-sm appearance-none cursor-pointer pr-2"
               value={selectedSubtitle}
               onChange={(e) => setSelectedSubtitle(e.target.value)}
             >
-              <option value="">All Subtitles</option>
+              <option value="">Subtitles</option>
               {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
               <option value="None">None</option>
             </select>
@@ -176,9 +176,9 @@ export default function Search() {
                 setSelectedLanguage('');
                 setSelectedSubtitle('');
               }}
-              className="text-sm text-indigo-400 hover:text-indigo-300 font-medium"
+              className="shrink-0 text-sm text-indigo-400 hover:text-indigo-300 font-medium px-2"
             >
-              Clear Filters
+              Clear
             </button>
           )}
         </div>

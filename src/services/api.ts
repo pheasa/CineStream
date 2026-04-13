@@ -14,6 +14,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_auth');
+      // Only redirect if we're not already on the login page
+      if (!window.location.pathname.includes('/admin/login')) {
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authService = {
   login: (credentials: any) => api.post<{ token: string }>('/auth/login', credentials).then(res => res.data),
   logout: () => {

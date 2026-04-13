@@ -5,6 +5,22 @@ const api = axios.create({
   baseURL: '/api',
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('admin_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const authService = {
+  login: (credentials: any) => api.post<{ token: string }>('/auth/login', credentials).then(res => res.data),
+  logout: () => {
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_auth');
+  }
+};
+
 export const movieService = {
   getAll: () => api.get<Movie[]>('/movies').then(res => res.data),
   getById: (id: string) => api.get<Movie>(`/movies/${id}`).then(res => res.data),

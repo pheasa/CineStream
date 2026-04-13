@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Film, AlertCircle } from 'lucide-react';
 import Logo from '../../components/Logo';
+import { authService } from '../../services/api';
 
 export default function Login() {
   const [username, setUsername] = React.useState('');
@@ -11,17 +12,17 @@ export default function Login() {
 
   const appName = import.meta.env.VITE_APP_NAME || 'CineStream';
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const adminUsername = import.meta.env.VITE_ADMIN_USERNAME || 'pheasa';
-    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'pheasa';
+    setError('');
     
-    // Simple demo auth
-    if (username === adminUsername && password === adminPassword) {
+    try {
+      const { token } = await authService.login({ username, password });
+      localStorage.setItem('admin_token', token);
       localStorage.setItem('admin_auth', 'true');
       navigate('/admin');
-    } else {
-      setError('Invalid username or password.');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Invalid username or password.');
     }
   };
 

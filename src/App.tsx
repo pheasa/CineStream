@@ -12,7 +12,7 @@ import AdminMovies from './pages/admin/Movies';
 import AdminMetadata from './pages/admin/Metadata';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = localStorage.getItem('admin_auth') === 'true';
+  const isAuthenticated = localStorage.getItem('admin_auth') === 'true' && !!localStorage.getItem('admin_token');
   if (!isAuthenticated) return <Navigate to="/admin/login" />;
   return <Layout isAdmin>{children}</Layout>;
 }

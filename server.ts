@@ -7,6 +7,8 @@ import pg from 'pg';
 import multer from 'multer';
 import FormData from 'form-data';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 const { Pool } = pg;
 const upload = multer({ storage: multer.memoryStorage() });
@@ -19,6 +21,8 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Initialize database tables
 let dbInitialized = false;
@@ -54,8 +58,24 @@ async function initDb() {
           featured BOOLEAN DEFAULT FALSE
         );
 
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          role TEXT DEFAULT 'admin'
+        );
+
         ALTER TABLE movies ALTER COLUMN tags DROP NOT NULL;
       `);
+
+      // Initial admin user
+      const userCount = await client.query('SELECT COUNT(*) FROM users');
+      if (parseInt(userCount.rows[0].count) === 0) {
+        const adminUsername = process.env.VITE_ADMIN_USERNAME || 'pheasa';
+        const adminPassword = process.env.VITE_ADMIN_PASSWORD || 'pheasa';
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        await client.query('INSERT INTO users (id, username, password) VALUES ($1, $2, $3)', ['admin1', adminUsername, hashedPassword]);
+      }
 
       // Initial data for metadata if empty
       const metaCount = await client.query('SELECT COUNT(*) FROM metadata');
@@ -247,6 +267,20 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Auth Middleware
+  const authenticateToken = (req: any, res: any, next: any) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ error: "Access denied" });
+
+    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+      if (err) return res.status(403).json({ error: "Invalid token" });
+      req.user = user;
+      next();
+    });
+  };
+
   // Middleware to check database connectivity
   app.use("/api", (req, res, next) => {
     if (!process.env.DATABASE_URL) {
@@ -266,6 +300,24 @@ async function startServer() {
 
   // API Routes
   
+  // Auth Routes
+  app.post("/api/auth/login", async (req, res) => {
+    const { username, password } = req.body;
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+      const user = result.rows[0];
+
+      if (user && await bcrypt.compare(password, user.password)) {
+        const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
+        res.json({ token });
+      } else {
+        res.status(401).json({ error: "Invalid credentials" });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Auth error" });
+    }
+  });
+
   // Movies
   app.get("/api/movies", async (req, res) => {
     try {
@@ -316,7 +368,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/movies", async (req, res) => {
+  app.post("/api/movies", authenticateToken, async (req, res) => {
     const { title, thumbnail, embedCode, country, category, language, subtitle, tags } = req.body;
     const id = Date.now().toString();
     try {
@@ -343,7 +395,7 @@ async function startServer() {
     }
   });
 
-  app.put("/api/movies/:id", async (req, res) => {
+  app.put("/api/movies/:id", authenticateToken, async (req, res) => {
     const { title, thumbnail, embedCode, country, category, language, subtitle, tags } = req.body;
     try {
       const result = await pool.query(
@@ -373,7 +425,7 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/movies/:id", async (req, res) => {
+  app.delete("/api/movies/:id", authenticateToken, async (req, res) => {
     try {
       await pool.query('DELETE FROM movies WHERE id = $1', [req.params.id]);
       res.status(204).send();
@@ -400,7 +452,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/metadata", async (req, res) => {
+  app.post("/api/metadata", authenticateToken, async (req, res) => {
     const { type, name } = req.body;
     const id = Date.now().toString();
     try {
@@ -411,7 +463,7 @@ async function startServer() {
     }
   });
 
-  app.put("/api/metadata/:id", async (req, res) => {
+  app.put("/api/metadata/:id", authenticateToken, async (req, res) => {
     const { type, name } = req.body;
     try {
       const result = await pool.query('UPDATE metadata SET type = $1, name = $2 WHERE id = $3 RETURNING *', [type, name, req.params.id]);
@@ -425,7 +477,7 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/metadata/:id", async (req, res) => {
+  app.delete("/api/metadata/:id", authenticateToken, async (req, res) => {
     try {
       await pool.query('DELETE FROM metadata WHERE id = $1', [req.params.id]);
       res.status(204).send();
@@ -435,7 +487,7 @@ async function startServer() {
   });
 
   // Upload Proxy Routes
-  app.post("/api/upload/litterbox", upload.single('file'), async (req, res) => {
+  app.post("/api/upload/litterbox", authenticateToken, upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     try {
@@ -458,7 +510,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/upload/catbox", async (req, res) => {
+  app.post("/api/upload/catbox", authenticateToken, async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: "No URL provided" });
 

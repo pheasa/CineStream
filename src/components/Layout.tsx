@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import AdSense from './AdSense';
 import AdOverlay from './AdOverlay';
 import Logo from './Logo';
+import { authService } from '../services/api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
   const hideAds = isAdmin || isLoginPage;
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_auth');
+    authService.logout();
     navigate('/');
   };
 

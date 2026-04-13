@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search as SearchIcon, SlidersHorizontal } from 'lucide-react';
 import { Movie, Metadata } from '../types';
 import { movieService, metadataService } from '../services/api';
@@ -8,19 +9,33 @@ import Pagination from '../components/Pagination';
 const ITEMS_PER_PAGE = 15;
 
 export default function Search() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [movies, setMovies] = React.useState<Movie[]>([]);
   const [totalItems, setTotalItems] = React.useState(0);
   const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [countries, setCountries] = React.useState<Metadata[]>([]);
   const [languages, setLanguages] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [currentPage, setCurrentPage] = React.useState(1);
 
-  const [query, setQuery] = React.useState('');
-  const [selectedCategory, setSelectedCategory] = React.useState('');
-  const [selectedCountry, setSelectedCountry] = React.useState('');
-  const [selectedLanguage, setSelectedLanguage] = React.useState('');
-  const [selectedSubtitle, setSelectedSubtitle] = React.useState('');
+  // Initialize state from URL
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
+  const [query, setQuery] = React.useState(searchParams.get('q') || '');
+  const [selectedCategory, setSelectedCategory] = React.useState(searchParams.get('category') || '');
+  const [selectedCountry, setSelectedCountry] = React.useState(searchParams.get('country') || '');
+  const [selectedLanguage, setSelectedLanguage] = React.useState(searchParams.get('language') || '');
+  const [selectedSubtitle, setSelectedSubtitle] = React.useState(searchParams.get('subtitle') || '');
+
+  // Update URL when state changes
+  React.useEffect(() => {
+    const params: any = {};
+    if (query) params.q = query;
+    if (selectedCategory) params.category = selectedCategory;
+    if (selectedCountry) params.country = selectedCountry;
+    if (selectedLanguage) params.language = selectedLanguage;
+    if (selectedSubtitle) params.subtitle = selectedSubtitle;
+    if (currentPage > 1) params.page = currentPage.toString();
+    setSearchParams(params, { replace: true });
+  }, [query, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle, currentPage]);
 
   const fetchMovies = () => {
     setLoading(true);

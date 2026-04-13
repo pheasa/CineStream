@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { Movie, Metadata } from '../types';
 import { movieService, metadataService } from '../services/api';
 import MovieCard from '../components/MovieCard';
@@ -12,11 +12,19 @@ const ITEMS_PER_PAGE = 12;
 
 export default function CategoryPage() {
   const { name } = useParams<{ name: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [movies, setMovies] = React.useState<Movie[]>([]);
   const [totalItems, setTotalItems] = React.useState(0);
   const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
+
+  // Update URL when page changes
+  React.useEffect(() => {
+    const params: any = {};
+    if (currentPage > 1) params.page = currentPage.toString();
+    setSearchParams(params, { replace: true });
+  }, [currentPage]);
 
   const fetchMovies = () => {
     setLoading(true);

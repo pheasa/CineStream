@@ -1,9 +1,11 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { metadataService } from '../../services/api';
 import { Metadata } from '../../types';
 import { Plus, Edit2, Trash2, Loader2, X, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function MetadataPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [metadata, setMetadata] = React.useState<Metadata[]>([]);
   const [totalItems, setTotalItems] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
@@ -11,10 +13,22 @@ export default function MetadataPage() {
   const [editingItem, setEditingItem] = React.useState<Metadata | null>(null);
   const [name, setName] = React.useState('');
   const [type, setType] = React.useState('language');
-  const [filterType, setFilterType] = React.useState('all');
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+
+  // Initialize state from URL
+  const [filterType, setFilterType] = React.useState(searchParams.get('type') || 'all');
+  const [searchTerm, setSearchTerm] = React.useState(searchParams.get('q') || '');
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get('limit')) || 10);
+
+  // Update URL when state changes
+  React.useEffect(() => {
+    const params: any = {};
+    if (searchTerm) params.q = searchTerm;
+    if (filterType !== 'all') params.type = filterType;
+    if (currentPage > 1) params.page = currentPage.toString();
+    if (itemsPerPage !== 10) params.limit = itemsPerPage.toString();
+    setSearchParams(params, { replace: true });
+  }, [searchTerm, filterType, currentPage, itemsPerPage]);
 
   const fetchMetadata = () => {
     setLoading(true);

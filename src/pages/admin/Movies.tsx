@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,6 +25,7 @@ const ITEMS_PER_PAGE = 10;
 type MovieFormData = z.infer<typeof movieSchema>;
 
 export default function Movies() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [movies, setMovies] = React.useState<Movie[]>([]);
   const [totalItems, setTotalItems] = React.useState(0);
   const [categories, setCategories] = React.useState<Metadata[]>([]);
@@ -33,12 +35,26 @@ export default function Movies() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingMovie, setEditingMovie] = React.useState<Movie | null>(null);
   const [uploading, setUploading] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [filterCategory, setFilterCategory] = React.useState('all');
-  const [filterCountry, setFilterCountry] = React.useState('all');
-  const [filterLanguage, setFilterLanguage] = React.useState('all');
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+
+  // Initialize state from URL
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get('q') || '');
+  const [filterCategory, setFilterCategory] = React.useState(searchParams.get('category') || 'all');
+  const [filterCountry, setFilterCountry] = React.useState(searchParams.get('country') || 'all');
+  const [filterLanguage, setFilterLanguage] = React.useState(searchParams.get('language') || 'all');
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get('limit')) || 10);
+
+  // Update URL when state changes
+  React.useEffect(() => {
+    const params: any = {};
+    if (searchQuery) params.q = searchQuery;
+    if (filterCategory !== 'all') params.category = filterCategory;
+    if (filterCountry !== 'all') params.country = filterCountry;
+    if (filterLanguage !== 'all') params.language = filterLanguage;
+    if (currentPage > 1) params.page = currentPage.toString();
+    if (itemsPerPage !== 10) params.limit = itemsPerPage.toString();
+    setSearchParams(params, { replace: true });
+  }, [searchQuery, filterCategory, filterCountry, filterLanguage, currentPage, itemsPerPage]);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, User, Film, AlertCircle } from 'lucide-react';
 import Logo from '../../components/Logo';
 import { authService } from '../../services/api';
+import clientConfig from '../../config/client';
 
 export default function Login() {
   const [username, setUsername] = React.useState('');
@@ -10,7 +11,7 @@ export default function Login() {
   const [error, setError] = React.useState('');
   const navigate = useNavigate();
 
-  const appName = import.meta.env.VITE_APP_NAME || 'CineStream';
+  const appName = clientConfig.VITE_APP_NAME;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +84,7 @@ export default function Login() {
 
         <div className="text-center">
           <p className="text-xs text-slate-600">
-            Demo credentials: <strong>{import.meta.env.VITE_ADMIN_USERNAME || 'pheasa'}</strong> / <strong>{import.meta.env.VITE_ADMIN_PASSWORD || 'pheasa'}</strong>
+            Demo credentials: <strong>{clientConfig.VITE_ADMIN_USERNAME}</strong> / <strong>{clientConfig.VITE_ADMIN_PASSWORD}</strong>
           </p>
         </div>
       </div>

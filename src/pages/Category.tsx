@@ -6,6 +6,7 @@ import MovieCard from '../components/MovieCard';
 import { ChevronRight, Filter } from 'lucide-react';
 import AdSense from '../components/AdSense';
 import Pagination from '../components/Pagination';
+import clientConfig from '../config/client';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -92,7 +93,7 @@ export default function CategoryPage() {
 
           {/* Mid-Page Ad Banner */}
           <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px]">
-            <AdSense slot={import.meta.env.VITE_ADSENSE_CATEGORY_MID_SLOT || "9999999999"} className="w-full" />
+            <AdSense slot={clientConfig.VITE_ADSENSE_CATEGORY_MID_SLOT} className="w-full" />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
@@ -119,7 +120,7 @@ export default function CategoryPage() {
 
       {/* Ad Banner */}
       <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px] mt-12">
-        <AdSense slot={import.meta.env.VITE_ADSENSE_CATEGORY_SLOT || "0987654321"} className="w-full" />
+        <AdSense slot={clientConfig.VITE_ADSENSE_CATEGORY_SLOT} className="w-full" />
       </div>
     </div>
   );

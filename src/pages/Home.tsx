@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import AdSense from '../components/AdSense';
 import ShareModal from '../components/ShareModal';
 import { Share2 } from 'lucide-react';
+import clientConfig from '../config/client';
 
 export default function Home() {
   const [movies, setMovies] = React.useState<Movie[]>([]);
@@ -118,7 +119,7 @@ export default function Home() {
 
       {/* Mid-Page Ad Banner */}
       <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px]">
-        <AdSense slot={import.meta.env.VITE_ADSENSE_HOME_MID_SLOT || "7777777777"} className="w-full" />
+        <AdSense slot={clientConfig.VITE_ADSENSE_HOME_MID_SLOT} className="w-full" />
       </div>
 
       {/* Latest Movies */}
@@ -147,7 +148,7 @@ export default function Home() {
 
       {/* Bottom Ad Banner */}
       <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px]">
-        <AdSense slot={import.meta.env.VITE_ADSENSE_HOME_BOTTOM_SLOT || "8888888888"} className="w-full" />
+        <AdSense slot={clientConfig.VITE_ADSENSE_HOME_BOTTOM_SLOT} className="w-full" />
       </div>
     </div>
   );

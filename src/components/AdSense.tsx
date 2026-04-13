@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../lib/utils';
+import clientConfig from '../config/client';
 
 interface AdSenseProps {
   slot: string;
@@ -10,7 +11,7 @@ interface AdSenseProps {
 export default function AdSense({ slot, format = 'auto', className }: AdSenseProps) {
   const adRef = React.useRef<HTMLDivElement>(null);
   const initialized = React.useRef(false);
-  const adClient = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXXXX';
+  const adClient = clientConfig.VITE_ADSENSE_CLIENT_ID;
 
   React.useEffect(() => {
     if (initialized.current) return;

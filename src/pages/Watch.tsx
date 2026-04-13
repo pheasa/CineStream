@@ -9,6 +9,7 @@ import AdSense from '../components/AdSense';
 import ShareModal from '../components/ShareModal';
 import AdOverlay from '../components/AdOverlay';
 import RumblePlayer from '../components/RumblePlayer';
+import clientConfig from '../config/client';
 
 export default function Watch() {
   const { id } = useParams<{ id: string }>();
@@ -81,7 +82,7 @@ export default function Watch() {
         <div className="lg:col-span-2 space-y-6">
           {/* Top of Player Ad */}
           <div className="bg-slate-900/10 border border-slate-800/30 rounded-xl p-2 flex items-center justify-center min-h-[50px]">
-            <AdSense slot={import.meta.env.VITE_ADSENSE_WATCH_TOP_SLOT || "4444444444"} className="w-full" />
+            <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_TOP_SLOT} className="w-full" />
           </div>
 
           {/* Video Player */}
@@ -98,7 +99,7 @@ export default function Watch() {
 
           {/* Bottom of Player Ad */}
           <div className="bg-slate-900/10 border border-slate-800/30 rounded-xl p-2 flex items-center justify-center min-h-[50px]">
-            <AdSense slot={import.meta.env.VITE_ADSENSE_WATCH_PLAYER_BOTTOM_SLOT || "5555555555"} className="w-full" />
+            <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_PLAYER_BOTTOM_SLOT} className="w-full" />
           </div>
 
           <div className="space-y-4">
@@ -190,7 +191,7 @@ export default function Watch() {
 
           {/* Ad Banner */}
           <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[200px]">
-            <AdSense slot={import.meta.env.VITE_ADSENSE_WATCH_SLOT || "1122334455"} format="rectangle" className="w-full" />
+            <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_SLOT} format="rectangle" className="w-full" />
           </div>
         </div>
       </div>
@@ -204,7 +205,7 @@ export default function Watch() {
 
       <AdOverlay 
         type="interstitial"
-        slot={import.meta.env.VITE_ADSENSE_INTERSTITIAL_SLOT || "6666666666"}
+        slot={clientConfig.VITE_ADSENSE_INTERSTITIAL_SLOT}
         isOpen={isInterstitialOpen}
         onClose={() => setIsInterstitialOpen(false)}
         title="Ready to Watch?"

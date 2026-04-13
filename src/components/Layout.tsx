@@ -6,6 +6,7 @@ import AdSense from './AdSense';
 import AdOverlay from './AdOverlay';
 import Logo from './Logo';
 import { authService } from '../services/api';
+import clientConfig from '../config/client';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -40,7 +41,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
 
   const navItems = isAdmin ? adminNav : userNav;
 
-  const appName = import.meta.env.VITE_APP_NAME || 'CineStream';
+  const appName = clientConfig.VITE_APP_NAME;
 
   React.useEffect(() => {
     document.title = `${appName} - Watch Movies Online`;
@@ -151,7 +152,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
       {/* Top Ad Slot - Moved below nav and made more subtle */}
       {!hideAds && (
         <div className="bg-slate-900/5 border-b border-slate-800/20 py-1 flex items-center justify-center">
-          <AdSense slot={import.meta.env.VITE_ADSENSE_TOP_SLOT || "1111111111"} className="w-full max-w-4xl opacity-60 hover:opacity-100 transition-opacity" />
+          <AdSense slot={clientConfig.VITE_ADSENSE_TOP_SLOT} className="w-full max-w-4xl opacity-60 hover:opacity-100 transition-opacity" />
         </div>
       )}
 
@@ -166,7 +167,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
       {/* Bottom Ad Slot */}
       {!hideAds && (
         <div className="bg-slate-900/20 border-t border-slate-800/50 py-4 flex items-center justify-center min-h-[100px]">
-          <AdSense slot={import.meta.env.VITE_ADSENSE_BOTTOM_SLOT || "2222222222"} className="w-full max-w-6xl" />
+          <AdSense slot={clientConfig.VITE_ADSENSE_BOTTOM_SLOT} className="w-full max-w-6xl" />
         </div>
       )}
 
@@ -181,7 +182,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
       {/* Global Popup Ad */}
       <AdOverlay 
         type="popup"
-        slot={import.meta.env.VITE_ADSENSE_POPUP_SLOT || "3333333333"}
+        slot={clientConfig.VITE_ADSENSE_POPUP_SLOT}
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
         title="Exclusive Movie Offer"

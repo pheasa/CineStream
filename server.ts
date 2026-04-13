@@ -9,6 +9,7 @@ import FormData from 'form-data';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import serverConfig from "./src/config/server";
 
 const { Pool } = pg;
 const upload = multer({ storage: multer.memoryStorage() });
@@ -18,17 +19,17 @@ const __dirname = path.dirname(__filename);
 
 // PostgreSQL connection pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionString: serverConfig.DATABASE_URL,
+  ssl: serverConfig.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = serverConfig.JWT_SECRET;
 
 // Initialize database tables
 let dbInitialized = false;
 
 async function initDb() {
-  if (!process.env.DATABASE_URL) {
+  if (!serverConfig.DATABASE_URL) {
     console.warn("DATABASE_URL is not set. PostgreSQL features will not work.");
     return;
   }
@@ -68,9 +69,9 @@ async function initDb() {
 
       // Initial admin user
       const userCount = await client.query('SELECT COUNT(*) FROM users');
-      if (parseInt(userCount.rows[0].count) === 0) {
-        const adminUsername = process.env.VITE_ADMIN_USERNAME || 'pheasa';
-        const adminPassword = process.env.VITE_ADMIN_PASSWORD || 'pheasa';
+      if (parseInt(userCount.rows[0].count) === 0 && serverConfig.VITE_ADMIN_USERNAME && serverConfig.VITE_ADMIN_PASSWORD) {
+        const adminUsername = serverConfig.VITE_ADMIN_USERNAME;
+        const adminPassword = serverConfig.VITE_ADMIN_PASSWORD;
         const hashedPassword = await bcrypt.hash(adminPassword, 10);
         await client.query('INSERT INTO users (username, password) VALUES ($1, $2)', [adminUsername, hashedPassword]);
       }
@@ -261,7 +262,6 @@ async function startServer() {
   await initDb();
 
   const app = express();
-  const PORT = 3000;
 
   app.use(express.json());
 
@@ -281,7 +281,7 @@ async function startServer() {
 
   // Middleware to check database connectivity
   app.use("/api", (req, res, next) => {
-    if (!process.env.DATABASE_URL) {
+    if (!serverConfig.DATABASE_URL) {
       return res.status(503).json({ 
         error: "Database not configured", 
         message: "Please set the DATABASE_URL environment variable in the settings menu." 
@@ -510,8 +510,8 @@ async function startServer() {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: "No URL provided" });
 
-    const userHash = process.env.CATBOX_USER_HASH || 'f7a6dc6f6e1e00e15d9136342';
-    const albumShort = process.env.CATBOX_ALBUM_SHORT || 'be947l';
+    const userHash = serverConfig.CATBOX_USER_HASH;
+    const albumShort = serverConfig.CATBOX_ALBUM_SHORT;
 
     try {
       // 1. Upload from URL to Catbox
@@ -563,7 +563,7 @@ async function startServer() {
   });
 
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (serverConfig.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -577,8 +577,10 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  const port = serverConfig.PORT;
+
+  app.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${port}`);
   });
 }
 

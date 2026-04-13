@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { movieService, metadataService, uploadToLitterbox, uploadToCatboxFromUrl } from '../../services/api';
 import { Movie, Metadata } from '../../types';
-import { Plus, Search, Edit2, Trash2, X, Upload, Loader2, ExternalLink } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Upload, Loader2, ExternalLink, Filter } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import Pagination from '../../components/Pagination';
 
@@ -33,6 +33,9 @@ export default function Movies() {
   const [editingMovie, setEditingMovie] = React.useState<Movie | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [filterCategory, setFilterCategory] = React.useState('all');
+  const [filterCountry, setFilterCountry] = React.useState('all');
+  const [filterLanguage, setFilterLanguage] = React.useState('all');
   const [currentPage, setCurrentPage] = React.useState(1);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
@@ -140,10 +143,17 @@ export default function Movies() {
     }
   };
 
-  const filteredMovies = movies.filter(m => 
-    m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMovies = React.useMemo(() => {
+    return movies.filter(m => {
+      const matchesSearch = m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           m.tags?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = filterCategory === 'all' || m.category === filterCategory;
+      const matchesCountry = filterCountry === 'all' || m.country === filterCountry;
+      const matchesLanguage = filterLanguage === 'all' || m.language === filterLanguage;
+      
+      return matchesSearch && matchesCategory && matchesCountry && matchesLanguage;
+    });
+  }, [movies, searchQuery, filterCategory, filterCountry, filterLanguage]);
 
   const totalPages = Math.ceil(filteredMovies.length / ITEMS_PER_PAGE);
   const currentMovies = filteredMovies.slice(
@@ -153,7 +163,7 @@ export default function Movies() {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, filterCategory, filterCountry, filterLanguage]);
 
   return (
     <div className="space-y-8">
@@ -172,15 +182,53 @@ export default function Movies() {
         </button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-        <input
-          type="text"
-          placeholder="Search movies..."
-          className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="md:col-span-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+          <input
+            type="text"
+            placeholder="Search movies..."
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
+          <Filter className="w-4 h-4 text-slate-500" />
+          <select 
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full"
+          >
+            <option value="all">All Categories</option>
+            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
+          <Filter className="w-4 h-4 text-slate-500" />
+          <select 
+            value={filterCountry}
+            onChange={(e) => setFilterCountry(e.target.value)}
+            className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full"
+          >
+            <option value="all">All Countries</option>
+            {countries.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
+          <Filter className="w-4 h-4 text-slate-500" />
+          <select 
+            value={filterLanguage}
+            onChange={(e) => setFilterLanguage(e.target.value)}
+            className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full"
+          >
+            <option value="all">All Languages</option>
+            {languages.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+          </select>
+        </div>
       </div>
 
       {loading ? (
@@ -201,46 +249,56 @@ export default function Movies() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {currentMovies.map((movie) => (
-                    <tr key={movie.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          <img 
-                            src={movie.thumbnail} 
-                            alt={movie.title} 
-                            className="w-12 h-16 object-cover rounded-md border border-slate-700" 
-                            referrerPolicy="no-referrer"
-                          />
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-slate-100">{movie.title}</span>
-                            <span className="text-xs text-slate-500 truncate max-w-[200px]">{movie.tags}</span>
+                  {currentMovies.length > 0 ? (
+                    currentMovies.map((movie) => (
+                      <tr key={movie.id} className="hover:bg-slate-800/30 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-4">
+                            <img 
+                              src={movie.thumbnail} 
+                              alt={movie.title} 
+                              className="w-10 h-14 object-cover rounded-md border border-slate-700 shadow-lg" 
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-slate-100 group-hover:text-indigo-400 transition-colors">{movie.title}</span>
+                              <span className="text-[10px] text-slate-500 font-mono">ID: #{movie.id}</span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300">{movie.category}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-400">{movie.country}</span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() => handleEdit(movie)}
-                            className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(movie.id)}
-                            className="p-2 text-slate-400 hover:text-rose-400 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-md text-[10px] uppercase font-bold tracking-wider">{movie.category}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-slate-400 font-medium">{movie.country}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end space-x-1">
+                            <button
+                              onClick={() => handleEdit(movie)}
+                              className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
+                              title="Edit"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(movie.id)}
+                              className="p-2 text-slate-400 hover:text-rose-400 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
+                        No movies found matching your criteria.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

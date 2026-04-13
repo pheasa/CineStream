@@ -1,7 +1,7 @@
 import React from 'react';
 import { metadataService } from '../../services/api';
 import { Metadata } from '../../types';
-import { Plus, Edit2, Trash2, Loader2, X, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, X, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function MetadataPage() {
   const [metadata, setMetadata] = React.useState<Metadata[]>([]);
@@ -11,17 +11,40 @@ export default function MetadataPage() {
   const [name, setName] = React.useState('');
   const [type, setType] = React.useState('language');
   const [filterType, setFilterType] = React.useState('all');
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
 
   const fetchMetadata = () => {
     setLoading(true);
-    metadataService.getAll(filterType === 'all' ? undefined : filterType)
+    metadataService.getAll() // Fetch all and filter client-side for better search/pagination experience
       .then(setMetadata)
       .finally(() => setLoading(false));
   };
 
   React.useEffect(() => {
     fetchMetadata();
-  }, [filterType]);
+  }, []);
+
+  // Filtered and searched data
+  const filteredMetadata = React.useMemo(() => {
+    return metadata.filter(item => {
+      const matchesType = filterType === 'all' || item.type === filterType;
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesType && matchesSearch;
+    });
+  }, [metadata, filterType, searchTerm]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredMetadata.length / itemsPerPage);
+  const paginatedMetadata = filteredMetadata.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, searchTerm]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,32 +88,43 @@ export default function MetadataPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-black tracking-tight">Manage Metadata</h1>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <select 
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-sm"
-            >
-              <option value="all">All Types</option>
-              <option value="category">Categories</option>
-              <option value="language">Languages</option>
-              <option value="country">Countries</option>
-            </select>
-          </div>
-          <button
-            onClick={() => {
-              setEditingItem(null);
-              setName('');
-              setType('language');
-              setIsModalOpen(true);
-            }}
-            className="flex items-center justify-center space-x-2 px-4 py-2 bg-indigo-600 rounded-lg font-medium hover:bg-indigo-500 transition-colors"
+        <button
+          onClick={() => {
+            setEditingItem(null);
+            setName('');
+            setType('language');
+            setIsModalOpen(true);
+          }}
+          className="flex items-center justify-center space-x-2 px-4 py-2 bg-indigo-600 rounded-lg font-medium hover:bg-indigo-500 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Add Item</span>
+        </button>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+          <input
+            type="text"
+            placeholder="Search metadata..."
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+          <Filter className="w-5 h-5 text-slate-500" />
+          <select 
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="bg-transparent border-none focus:ring-0 text-sm font-medium"
           >
-            <Plus className="w-5 h-5" />
-            <span>Add Item</span>
-          </button>
+            <option value="all">All Types</option>
+            <option value="category">Categories</option>
+            <option value="language">Languages</option>
+            <option value="country">Countries</option>
+          </select>
         </div>
       </div>
 
@@ -99,29 +133,100 @@ export default function MetadataPage() {
           <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {metadata.map((item) => (
-            <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between group">
-              <div className="flex flex-col">
-                <span className="font-semibold text-slate-200">{item.name}</span>
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{item.type}</span>
-              </div>
-              <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 bg-slate-800/50">
+                  <th className="px-6 py-4 text-xs uppercase tracking-wider font-bold text-slate-500">ID</th>
+                  <th className="px-6 py-4 text-xs uppercase tracking-wider font-bold text-slate-500">Name</th>
+                  <th className="px-6 py-4 text-xs uppercase tracking-wider font-bold text-slate-500">Type</th>
+                  <th className="px-6 py-4 text-xs uppercase tracking-wider font-bold text-slate-500 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {paginatedMetadata.length > 0 ? (
+                  paginatedMetadata.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-800/30 transition-colors group">
+                      <td className="px-6 py-4 text-sm text-slate-500 font-mono">#{item.id}</td>
+                      <td className="px-6 py-4 font-medium text-slate-200">{item.name}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${
+                          item.type === 'category' ? 'bg-blue-500/10 text-blue-400' :
+                          item.type === 'language' ? 'bg-purple-500/10 text-purple-400' :
+                          'bg-emerald-500/10 text-emerald-400'
+                        }`}>
+                          {item.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end space-x-1">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-2 text-slate-400 hover:text-rose-400 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
+                      No metadata found matching your criteria.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-slate-800/20">
+              <p className="text-sm text-slate-500">
+                Showing <span className="font-medium text-slate-300">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-300">{Math.min(currentPage * itemsPerPage, filteredMetadata.length)}</span> of <span className="font-medium text-slate-300">{filteredMetadata.length}</span> items
+              </p>
+              <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => handleEdit(item)}
-                  className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
+                <div className="flex items-center space-x-1">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === i + 1 ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
                 <button
-                  onClick={() => handleDelete(item.id)}
-                  className="p-2 text-slate-400 hover:text-rose-400 transition-colors"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
-          ))}
+          )}
         </div>
       )}
 

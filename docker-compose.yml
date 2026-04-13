@@ -13,9 +13,5 @@ services:
       - /app/node_modules
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-    networks:
-      - my-network
-
-networks:
-  my-network:
-    driver: bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

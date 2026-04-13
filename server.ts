@@ -318,9 +318,55 @@ async function startServer() {
 
   // Movies
   app.get("/api/movies", async (req, res) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || "";
+    const category = (req.query.category as string) || "all";
+    const country = (req.query.country as string) || "all";
+    const language = (req.query.language as string) || "all";
+    const offset = (page - 1) * limit;
+
     try {
-      const result = await pool.query('SELECT * FROM movies ORDER BY created_at DESC');
-      // Map snake_case to camelCase for frontend
+      let query = 'SELECT * FROM movies';
+      let countQuery = 'SELECT COUNT(*) FROM movies';
+      let params: any[] = [];
+      let conditions: string[] = [];
+
+      if (search) {
+        params.push(`%${search}%`);
+        conditions.push(`(title ILIKE $${params.length} OR tags ILIKE $${params.length})`);
+      }
+
+      if (category !== 'all') {
+        params.push(category);
+        conditions.push(`category = $${params.length}`);
+      }
+
+      if (country !== 'all') {
+        params.push(country);
+        conditions.push(`country = $${params.length}`);
+      }
+
+      if (language !== 'all') {
+        params.push(language);
+        conditions.push(`language = $${params.length}`);
+      }
+
+      if (conditions.length > 0) {
+        const whereClause = ' WHERE ' + conditions.join(' AND ');
+        query += whereClause;
+        countQuery += whereClause;
+      }
+
+      query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+      const queryParams = [...params, limit, offset];
+
+      const [result, totalResult] = await Promise.all([
+        pool.query(query, queryParams),
+        pool.query(countQuery, params)
+      ]);
+
+      const total = parseInt(totalResult.rows[0].count);
       const movies = result.rows.map(m => ({
         id: m.id,
         title: m.title,
@@ -334,8 +380,16 @@ async function startServer() {
         createdAt: m.created_at,
         featured: m.featured
       }));
-      res.json(movies);
+
+      res.json({
+        data: movies,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      });
     } catch (err) {
+      console.error('Movies fetch error:', err);
       res.status(500).json({ error: "Database error" });
     }
   });
@@ -433,18 +487,52 @@ async function startServer() {
 
   // Metadata (Languages, Countries, Categories, etc.)
   app.get("/api/metadata", async (req, res) => {
-    const { type } = req.query;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || "";
+    const type = (req.query.type as string) || "all";
+    const offset = (page - 1) * limit;
+
     try {
       let query = 'SELECT * FROM metadata';
+      let countQuery = 'SELECT COUNT(*) FROM metadata';
       let params: any[] = [];
-      if (type) {
-        query += ' WHERE type = $1';
+      let conditions: string[] = [];
+
+      if (type && type !== 'all') {
         params.push(type);
+        conditions.push(`type = $${params.length}`);
       }
-      query += ' ORDER BY name ASC';
-      const result = await pool.query(query, params);
-      res.json(result.rows);
+
+      if (search) {
+        params.push(`%${search}%`);
+        conditions.push(`name ILIKE $${params.length}`);
+      }
+
+      if (conditions.length > 0) {
+        const whereClause = ' WHERE ' + conditions.join(' AND ');
+        query += whereClause;
+        countQuery += whereClause;
+      }
+
+      query += ' ORDER BY name ASC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+      const queryParams = [...params, limit, offset];
+
+      const [result, totalResult] = await Promise.all([
+        pool.query(query, queryParams),
+        pool.query(countQuery, params)
+      ]);
+
+      const total = parseInt(totalResult.rows[0].count);
+      res.json({
+        data: result.rows,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      });
     } catch (err) {
+      console.error('Metadata fetch error:', err);
       res.status(500).json({ error: "Database error" });
     }
   });

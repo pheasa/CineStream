@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, Loader2, X, Filter, Search, ChevronLeft, ChevronRi
 
 export default function MetadataPage() {
   const [metadata, setMetadata] = React.useState<Metadata[]>([]);
+  const [totalItems, setTotalItems] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<Metadata | null>(null);
@@ -13,38 +14,32 @@ export default function MetadataPage() {
   const [filterType, setFilterType] = React.useState('all');
   const [searchTerm, setSearchTerm] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   const fetchMetadata = () => {
     setLoading(true);
-    metadataService.getAll() // Fetch all and filter client-side for better search/pagination experience
-      .then(setMetadata)
+    metadataService.getAll({
+      page: currentPage,
+      limit: itemsPerPage,
+      search: searchTerm,
+      type: filterType
+    })
+      .then(res => {
+        setMetadata(res.data);
+        setTotalItems(res.total);
+      })
       .finally(() => setLoading(false));
   };
 
   React.useEffect(() => {
     fetchMetadata();
-  }, []);
+  }, [currentPage, itemsPerPage, filterType, searchTerm]);
 
-  // Filtered and searched data
-  const filteredMetadata = React.useMemo(() => {
-    return metadata.filter(item => {
-      const matchesType = filterType === 'all' || item.type === filterType;
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesType && matchesSearch;
-    });
-  }, [metadata, filterType, searchTerm]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredMetadata.length / itemsPerPage);
-  const paginatedMetadata = filteredMetadata.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [filterType, searchTerm]);
+  }, [filterType, searchTerm, itemsPerPage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,8 +140,8 @@ export default function MetadataPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {paginatedMetadata.length > 0 ? (
-                  paginatedMetadata.map((item) => (
+                {metadata.length > 0 ? (
+                  metadata.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-800/30 transition-colors group">
                       <td className="px-6 py-4 text-sm text-slate-500 font-mono">#{item.id}</td>
                       <td className="px-6 py-4 font-medium text-slate-200">{item.name}</td>
@@ -191,11 +186,23 @@ export default function MetadataPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-slate-800/20">
+          <div className="px-6 py-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between bg-slate-800/20 gap-4">
+            <div className="flex items-center space-x-4">
               <p className="text-sm text-slate-500">
-                Showing <span className="font-medium text-slate-300">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-300">{Math.min(currentPage * itemsPerPage, filteredMetadata.length)}</span> of <span className="font-medium text-slate-300">{filteredMetadata.length}</span> items
+                Showing <span className="font-medium text-slate-300">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-300">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-medium text-slate-300">{totalItems}</span> items
               </p>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="bg-slate-900 border border-slate-800 rounded-lg text-xs px-2 py-1 focus:ring-0"
+              >
+                {[10, 25, 50, 100].map(size => (
+                  <option key={size} value={size}>{size} per page</option>
+                ))}
+              </select>
+            </div>
+            
+            {totalPages > 1 && (
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -205,17 +212,25 @@ export default function MetadataPage() {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="flex items-center space-x-1">
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === i + 1 ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+                  {/* Simple pagination logic for many pages */}
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = i + 1;
+                    if (totalPages > 5 && currentPage > 3) {
+                      pageNum = currentPage - 3 + i + 1;
+                      if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === pageNum ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
                 </div>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
@@ -225,8 +240,8 @@ export default function MetadataPage() {
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 

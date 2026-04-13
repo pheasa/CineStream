@@ -13,29 +13,41 @@ const ITEMS_PER_PAGE = 12;
 export default function CategoryPage() {
   const { name } = useParams<{ name: string }>();
   const [movies, setMovies] = React.useState<Movie[]>([]);
+  const [totalItems, setTotalItems] = React.useState(0);
   const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [currentPage, setCurrentPage] = React.useState(1);
 
-  React.useEffect(() => {
-    Promise.all([movieService.getAll(), metadataService.getAll('category')])
-      .then(([m, c]) => {
-        setCategories(c);
-        if (name) {
-          setMovies(m.filter(movie => movie.category === name).reverse());
-        } else {
-          setMovies([...m].reverse());
-        }
-        setCurrentPage(1);
-      })
-      .finally(() => setLoading(false));
-  }, [name]);
+  const fetchMovies = () => {
+    setLoading(true);
+    movieService.getAll({
+      page: currentPage,
+      limit: ITEMS_PER_PAGE,
+      category: name || 'all'
+    }).then(res => {
+      setMovies(res.data);
+      setTotalItems(res.total);
+    }).finally(() => setLoading(false));
+  };
 
-  const totalPages = Math.ceil(movies.length / ITEMS_PER_PAGE);
-  const currentMovies = movies.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const fetchMetadata = () => {
+    metadataService.getAll({ type: 'category', limit: 100 })
+      .then(res => setCategories(res.data));
+  };
+
+  React.useEffect(() => {
+    fetchMetadata();
+  }, []);
+
+  React.useEffect(() => {
+    fetchMovies();
+  }, [name, currentPage]);
+
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [name]);
 
   if (loading) {
     return (
@@ -83,10 +95,10 @@ export default function CategoryPage() {
         </div>
       </div>
 
-      {currentMovies.length > 0 ? (
+      {movies.length > 0 ? (
         <div className="space-y-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-            {currentMovies.slice(0, 5).map((movie) => (
+            {movies.slice(0, 5).map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>
@@ -97,7 +109,7 @@ export default function CategoryPage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-            {currentMovies.slice(5).map((movie) => (
+            {movies.slice(5).map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>

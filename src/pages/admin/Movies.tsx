@@ -25,6 +25,7 @@ type MovieFormData = z.infer<typeof movieSchema>;
 
 export default function Movies() {
   const [movies, setMovies] = React.useState<Movie[]>([]);
+  const [totalItems, setTotalItems] = React.useState(0);
   const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [countries, setCountries] = React.useState<Metadata[]>([]);
   const [languages, setLanguages] = React.useState<Metadata[]>([]);
@@ -37,6 +38,7 @@ export default function Movies() {
   const [filterCountry, setFilterCountry] = React.useState('all');
   const [filterLanguage, setFilterLanguage] = React.useState('all');
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
@@ -55,24 +57,42 @@ export default function Movies() {
   const tagsValue = watch('tags') || '';
   const thumbnailValue = watch('thumbnail') || '';
 
-  const fetchData = () => {
+  const fetchMovies = () => {
     setLoading(true);
-    Promise.all([
-      movieService.getAll(),
-      metadataService.getAll('category'),
-      metadataService.getAll('country'),
-      metadataService.getAll('language')
-    ]).then(([m, cat, cou, lang]) => {
-      setMovies([...m].reverse());
-      setCategories(cat);
-      setCountries(cou);
-      setLanguages(lang);
+    movieService.getAll({
+      page: currentPage,
+      limit: itemsPerPage,
+      search: searchQuery,
+      category: filterCategory,
+      country: filterCountry,
+      language: filterLanguage
+    }).then(res => {
+      setMovies(res.data);
+      setTotalItems(res.total);
     }).finally(() => setLoading(false));
   };
 
+  const fetchMetadata = () => {
+    Promise.all([
+      metadataService.getAll({ type: 'category', limit: 100 }),
+      metadataService.getAll({ type: 'country', limit: 100 }),
+      metadataService.getAll({ type: 'language', limit: 100 })
+    ]).then(([cat, cou, lang]) => {
+      setCategories(cat.data);
+      setCountries(cou.data);
+      setLanguages(lang.data);
+    });
+  };
+
   React.useEffect(() => {
-    fetchData();
+    fetchMetadata();
   }, []);
+
+  React.useEffect(() => {
+    fetchMovies();
+  }, [currentPage, itemsPerPage, searchQuery, filterCategory, filterCountry, filterLanguage]);
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const onSubmit = async (data: MovieFormData) => {
     try {
@@ -98,7 +118,7 @@ export default function Movies() {
       setIsModalOpen(false);
       setEditingMovie(null);
       reset();
-      fetchData();
+      fetchMovies();
     } catch (error) {
       console.error('Failed to save movie:', error);
       alert('Failed to save movie');
@@ -123,7 +143,7 @@ export default function Movies() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this movie?')) {
       await movieService.delete(id);
-      fetchData();
+      fetchMovies();
     }
   };
 
@@ -143,27 +163,9 @@ export default function Movies() {
     }
   };
 
-  const filteredMovies = React.useMemo(() => {
-    return movies.filter(m => {
-      const matchesSearch = m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           m.tags?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = filterCategory === 'all' || m.category === filterCategory;
-      const matchesCountry = filterCountry === 'all' || m.country === filterCountry;
-      const matchesLanguage = filterLanguage === 'all' || m.language === filterLanguage;
-      
-      return matchesSearch && matchesCategory && matchesCountry && matchesLanguage;
-    });
-  }, [movies, searchQuery, filterCategory, filterCountry, filterLanguage]);
-
-  const totalPages = Math.ceil(filteredMovies.length / ITEMS_PER_PAGE);
-  const currentMovies = filteredMovies.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterCategory, filterCountry, filterLanguage]);
+  }, [searchQuery, filterCategory, filterCountry, filterLanguage, itemsPerPage]);
 
   return (
     <div className="space-y-8">
@@ -249,8 +251,8 @@ export default function Movies() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {currentMovies.length > 0 ? (
-                    currentMovies.map((movie) => (
+                  {movies.length > 0 ? (
+                    movies.map((movie) => (
                       <tr key={movie.id} className="hover:bg-slate-800/30 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-4">
@@ -302,21 +304,33 @@ export default function Movies() {
                 </tbody>
               </table>
             </div>
-            {filteredMovies.length === 0 && (
-              <div className="p-12 text-center text-slate-500">
-                No movies found.
-              </div>
-            )}
           </div>
 
-          <Pagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
+          <div className="px-6 py-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between bg-slate-800/20 gap-4">
+            <div className="flex items-center space-x-4">
+              <p className="text-sm text-slate-500">
+                Showing <span className="font-medium text-slate-300">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-300">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-medium text-slate-300">{totalItems}</span> items
+              </p>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="bg-slate-900 border border-slate-800 rounded-lg text-xs px-2 py-1 focus:ring-0"
+              >
+                {[10, 25, 50, 100].map(size => (
+                  <option key={size} value={size}>{size} per page</option>
+                ))}
+              </select>
+            </div>
+
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          </div>
         </div>
       )}
 

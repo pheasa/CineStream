@@ -8,11 +8,11 @@ import Pagination from '../components/Pagination';
 const ITEMS_PER_PAGE = 15;
 
 export default function Search() {
-  const [allMovies, setAllMovies] = React.useState<Movie[]>([]);
+  const [movies, setMovies] = React.useState<Movie[]>([]);
+  const [totalItems, setTotalItems] = React.useState(0);
   const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [countries, setCountries] = React.useState<Metadata[]>([]);
   const [languages, setLanguages] = React.useState<Metadata[]>([]);
-  const [filteredMovies, setFilteredMovies] = React.useState<Movie[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [currentPage, setCurrentPage] = React.useState(1);
 
@@ -22,58 +22,46 @@ export default function Search() {
   const [selectedLanguage, setSelectedLanguage] = React.useState('');
   const [selectedSubtitle, setSelectedSubtitle] = React.useState('');
 
-  React.useEffect(() => {
-    Promise.all([
-      movieService.getAll(),
-      metadataService.getAll('category'),
-      metadataService.getAll('country'),
-      metadataService.getAll('language')
-    ]).then(([m, cat, cou, lang]) => {
-      const sorted = [...m].reverse();
-      setAllMovies(sorted);
-      setFilteredMovies(sorted);
-      setCategories(cat);
-      setCountries(cou);
-      setLanguages(lang);
+  const fetchMovies = () => {
+    setLoading(true);
+    movieService.getAll({
+      page: currentPage,
+      limit: ITEMS_PER_PAGE,
+      search: query,
+      category: selectedCategory || 'all',
+      country: selectedCountry || 'all',
+      language: selectedLanguage || 'all'
+    }).then(res => {
+      setMovies(res.data);
+      setTotalItems(res.total);
     }).finally(() => setLoading(false));
+  };
+
+  const fetchMetadata = () => {
+    Promise.all([
+      metadataService.getAll({ type: 'category', limit: 100 }),
+      metadataService.getAll({ type: 'country', limit: 100 }),
+      metadataService.getAll({ type: 'language', limit: 100 })
+    ]).then(([cat, cou, lang]) => {
+      setCategories(cat.data);
+      setCountries(cou.data);
+      setLanguages(lang.data);
+    });
+  };
+
+  React.useEffect(() => {
+    fetchMetadata();
   }, []);
 
   React.useEffect(() => {
-    let result = allMovies;
+    fetchMovies();
+  }, [query, selectedCategory, selectedCountry, selectedLanguage, currentPage]);
 
-    if (query) {
-      const q = query.toLowerCase();
-      result = result.filter(m => 
-        m.title.toLowerCase().includes(q) || 
-        m.tags.toLowerCase().includes(q)
-      );
-    }
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-    if (selectedCategory) {
-      result = result.filter(m => m.category === selectedCategory);
-    }
-
-    if (selectedCountry) {
-      result = result.filter(m => m.country === selectedCountry);
-    }
-
-    if (selectedLanguage) {
-      result = result.filter(m => m.language === selectedLanguage);
-    }
-
-    if (selectedSubtitle) {
-      result = result.filter(m => m.subtitle === selectedSubtitle);
-    }
-
-    setFilteredMovies(result);
+  React.useEffect(() => {
     setCurrentPage(1);
-  }, [query, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle, allMovies]);
-
-  const totalPages = Math.ceil(filteredMovies.length / ITEMS_PER_PAGE);
-  const currentMovies = filteredMovies.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  }, [query, selectedCategory, selectedCountry, selectedLanguage]);
 
   if (loading) {
     return (
@@ -168,13 +156,13 @@ export default function Search() {
 
       <div className="space-y-6">
         <p className="text-slate-400 text-sm">
-          Found {filteredMovies.length} results
+          Found {totalItems} results
         </p>
         
-        {currentMovies.length > 0 ? (
+        {movies.length > 0 ? (
           <div className="space-y-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-              {currentMovies.map((movie) => (
+              {movies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>

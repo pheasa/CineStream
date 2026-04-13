@@ -34,10 +34,11 @@ export default function Watch() {
         .then(m => {
           setMovie(m);
           setIsInterstitialOpen(true); // Show ad before viewing
-          return movieService.getAll();
+          return movieService.getAll({ limit: 20 });
         })
-        .then(all => {
+        .then(res => {
           const numericId = Number(id);
+          const all = res.data;
           if (movie) {
             setRelatedMovies(all.filter(m => m.id !== numericId && m.category === movie.category).slice(0, 5));
           } else {

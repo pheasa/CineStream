@@ -18,10 +18,13 @@ export default function Home() {
   const [shareData, setShareData] = React.useState({ title: '', url: '' });
 
   React.useEffect(() => {
-    Promise.all([movieService.getAll(), metadataService.getAll('category')])
+    Promise.all([
+      movieService.getAll({ limit: 20 }), 
+      metadataService.getAll({ type: 'category', limit: 5 })
+    ])
       .then(([m, c]) => {
-        setMovies(m);
-        setCategories(c);
+        setMovies(m.data);
+        setCategories(c.data);
       })
       .finally(() => setLoading(false));
   }, []);

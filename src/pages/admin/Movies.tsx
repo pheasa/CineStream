@@ -19,7 +19,7 @@ const movieSchema = z.object({
   country: z.string().min(1, 'Country is required'),
   category: z.string().min(1, 'Category is required'),
   language: z.string().min(1, 'Language is required'),
-  subtitle: z.string().min(1, 'Subtitle is required'),
+  subtitle: z.string().optional(),
   tags: z.string().optional(),
 });
 

@@ -14,7 +14,7 @@ export interface Movie {
   country: string;
   category: string;
   language: string;
-  subtitle: string;
+  subtitle?: string;
   tags?: string;
   createdAt: string;
   featured?: boolean;

@@ -53,11 +53,14 @@ async function initDb() {
           country TEXT NOT NULL,
           category TEXT NOT NULL,
           language TEXT NOT NULL,
-          subtitle TEXT NOT NULL,
+          subtitle TEXT,
           tags TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           featured BOOLEAN DEFAULT FALSE
         );
+
+        -- Ensure subtitle is optional if table already exists
+        ALTER TABLE movies ALTER COLUMN subtitle DROP NOT NULL;
 
         CREATE TABLE IF NOT EXISTS users (
           id SERIAL PRIMARY KEY,

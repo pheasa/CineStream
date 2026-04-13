@@ -6,8 +6,8 @@ import { z } from 'zod';
  */
 export const clientEnvSchema = z.object({
   VITE_APP_NAME: z.string().default('CineStream'),
-  VITE_ADMIN_USERNAME: z.string().optional(),
-  VITE_ADMIN_PASSWORD: z.string().optional(),
+  VITE_ADMIN_USERNAME: z.string().nullable().default(null),
+  VITE_ADMIN_PASSWORD: z.string().nullable().default(null),
   VITE_ADSENSE_CLIENT_ID: z.string().default('ca-pub-XXXXXXXXXXXXXXXX'),
   VITE_ADSENSE_HOME_MID_SLOT: z.string().default(''),
   VITE_ADSENSE_HOME_BOTTOM_SLOT: z.string().default(''),
@@ -29,12 +29,12 @@ export const clientEnvSchema = z.object({
 export const serverEnvSchema = z.object({
   DATABASE_URL: z.string().optional(),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
-  JWT_SECRET: z.string().default(''),
-  CATBOX_USER_HASH: z.string().default(''),
-  CATBOX_ALBUM_SHORT: z.string().default(''),
+  JWT_SECRET: z.string().default('your-secret-key'),
+  CATBOX_USER_HASH: z.string().default('f7a6dc6f6e1e00e15d9136342'),
+  CATBOX_ALBUM_SHORT: z.string().default('be947l'),
   PORT: z.coerce.number().default(3000),
-  VITE_ADMIN_USERNAME: z.string().optional(),
-  VITE_ADMIN_PASSWORD: z.string().optional(),
+  VITE_ADMIN_USERNAME: z.string().nullable().default(null),
+  VITE_ADMIN_PASSWORD: z.string().nullable().default(null),
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;

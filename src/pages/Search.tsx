@@ -60,7 +60,8 @@ export default function Search() {
       search: debouncedQuery,
       category: selectedCategory || FilterValues.ALL,
       country: selectedCountry || FilterValues.ALL,
-      language: selectedLanguage || FilterValues.ALL
+      language: selectedLanguage || FilterValues.ALL,
+      subtitle: selectedSubtitle || FilterValues.ALL
     }).then(res => {
       setMovies(res.data);
       setTotalItems(res.total);
@@ -85,13 +86,13 @@ export default function Search() {
 
   React.useEffect(() => {
     fetchMovies();
-  }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, currentPage]);
+  }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle, currentPage]);
 
   const totalPages = Math.ceil(totalItems / DEFAULT_PAGINATION.PUBLIC_LIMIT);
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage]);
+  }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle]);
 
   if (loading) {
     return (

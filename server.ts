@@ -327,6 +327,7 @@ async function startServer() {
     const category = (req.query.category as string) || "all";
     const country = (req.query.country as string) || "all";
     const language = (req.query.language as string) || "all";
+    const subtitle = (req.query.subtitle as string) || "all";
     const offset = (page - 1) * limit;
 
     try {
@@ -353,6 +354,11 @@ async function startServer() {
       if (language !== 'all') {
         params.push(language);
         conditions.push(`language = $${params.length}`);
+      }
+
+      if (subtitle !== 'all') {
+        params.push(subtitle);
+        conditions.push(`subtitle = $${params.length}`);
       }
 
       if (conditions.length > 0) {

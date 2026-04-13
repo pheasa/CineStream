@@ -23,7 +23,7 @@ export const authService = {
 };
 
 export const movieService = {
-  getAll: (params?: { page?: number; limit?: number; search?: string; category?: string; country?: string; language?: string }) => 
+  getAll: (params?: { page?: number; limit?: number; search?: string; category?: string; country?: string; language?: string; subtitle?: string }) => 
     api.get<PaginatedResponse<Movie>>('/movies', { params }).then(res => res.data),
   getById: (id: number | string) => api.get<Movie>(`/movies/${id}`).then(res => res.data),
   create: (movie: Omit<Movie, 'id' | 'createdAt'>) => api.post<Movie>('/movies', { ...movie, createdAt: new Date().toISOString() }).then(res => res.data),

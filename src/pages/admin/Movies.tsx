@@ -49,15 +49,54 @@ export default function Movies() {
 
   // Update URL when state changes
   React.useEffect(() => {
-    const params: any = {};
-    if (debouncedSearchQuery) params.q = debouncedSearchQuery;
-    if (filterCategory !== 'all') params.category = filterCategory;
-    if (filterCountry !== 'all') params.country = filterCountry;
-    if (filterLanguage !== 'all') params.language = filterLanguage;
-    if (currentPage > 1) params.page = currentPage.toString();
-    if (itemsPerPage !== 10) params.limit = itemsPerPage.toString();
+    const params: URLSearchParams = new URLSearchParams(searchParams);
+    
+    if (debouncedSearchQuery) params.set('q', debouncedSearchQuery);
+    else params.delete('q');
+
+    if (filterCategory !== 'all') params.set('category', filterCategory);
+    else params.delete('category');
+
+    if (filterCountry !== 'all') params.set('country', filterCountry);
+    else params.delete('country');
+
+    if (filterLanguage !== 'all') params.set('language', filterLanguage);
+    else params.delete('language');
+
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    else params.delete('page');
+
+    if (itemsPerPage !== 10) params.set('limit', itemsPerPage.toString());
+    else params.delete('limit');
+
     setSearchParams(params, { replace: true });
   }, [debouncedSearchQuery, filterCategory, filterCountry, filterLanguage, currentPage, itemsPerPage]);
+
+  // Handle ID from URL for editing
+  React.useEffect(() => {
+    const id = searchParams.get('id');
+    if (id) {
+      const numericId = Number(id);
+      const movie = movies.find(m => m.id === numericId);
+      if (movie) {
+        handleEdit(movie);
+      } else {
+        // Fetch movie if not in current list
+        movieService.getById(id).then(m => {
+          if (m) handleEdit(m);
+        }).catch(() => {
+          // If movie not found, clear ID from URL
+          const params = new URLSearchParams(searchParams);
+          params.delete('id');
+          setSearchParams(params, { replace: true });
+        });
+      }
+    } else {
+      setIsModalOpen(false);
+      setEditingMovie(null);
+      reset();
+    }
+  }, [searchParams.get('id')]);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
@@ -134,6 +173,12 @@ export default function Movies() {
       } else {
         await movieService.create(finalData);
       }
+      
+      // Clear ID from URL and close modal
+      const params = new URLSearchParams(searchParams);
+      params.delete('id');
+      setSearchParams(params);
+      
       setIsModalOpen(false);
       setEditingMovie(null);
       reset();
@@ -157,6 +202,13 @@ export default function Movies() {
     setValue('subtitle', movie.subtitle, { shouldValidate: true });
     setValue('tags', movie.tags, { shouldValidate: true });
     setIsModalOpen(true);
+
+    // Update URL if not already there
+    if (searchParams.get('id') !== movie.id.toString()) {
+      const params = new URLSearchParams(searchParams);
+      params.set('id', movie.id.toString());
+      setSearchParams(params);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -359,7 +411,15 @@ export default function Movies() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="sticky top-0 bg-slate-900 px-6 py-4 border-b border-slate-800 flex items-center justify-between z-10">
               <h2 className="text-xl font-bold">{editingMovie ? 'Edit Movie' : 'Add New Movie'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-lg">
+              <button 
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.delete('id');
+                  setSearchParams(params);
+                  setIsModalOpen(false);
+                }} 
+                className="p-2 hover:bg-slate-800 rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -541,7 +601,12 @@ export default function Movies() {
               <div className="flex items-center justify-end space-x-4 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams);
+                    params.delete('id');
+                    setSearchParams(params);
+                    setIsModalOpen(false);
+                  }}
                   className="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg font-medium transition-colors"
                 >
                   Cancel

@@ -25,13 +25,43 @@ export default function MetadataPage() {
 
   // Update URL when state changes
   React.useEffect(() => {
-    const params: any = {};
-    if (debouncedSearchTerm) params.q = debouncedSearchTerm;
-    if (filterType !== 'all') params.type = filterType;
-    if (currentPage > 1) params.page = currentPage.toString();
-    if (itemsPerPage !== 10) params.limit = itemsPerPage.toString();
+    const params: URLSearchParams = new URLSearchParams(searchParams);
+    
+    if (debouncedSearchTerm) params.set('q', debouncedSearchTerm);
+    else params.delete('q');
+
+    if (filterType !== 'all') params.set('type', filterType);
+    else params.delete('type');
+
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    else params.delete('page');
+
+    if (itemsPerPage !== 10) params.set('limit', itemsPerPage.toString());
+    else params.delete('limit');
+
     setSearchParams(params, { replace: true });
   }, [debouncedSearchTerm, filterType, currentPage, itemsPerPage]);
+
+  // Handle ID from URL for editing
+  React.useEffect(() => {
+    const id = searchParams.get('id');
+    if (id) {
+      const numericId = Number(id);
+      const item = metadata.find(m => m.id === numericId);
+      if (item) {
+        handleEdit(item);
+      } else {
+        // If not in current list, we don't have a direct getById for metadata in api.ts
+        // but we can search for it by setting the search term or just wait for it to be fetched
+        // For metadata, it's usually a small list, so we might just wait or clear it if not found
+        // Let's try to find it in the current list first.
+      }
+    } else {
+      setIsModalOpen(false);
+      setEditingItem(null);
+      setName('');
+    }
+  }, [searchParams.get('id'), metadata]);
 
   const fetchMetadata = () => {
     setLoading(true);
@@ -68,6 +98,12 @@ export default function MetadataPage() {
       } else {
         await metadataService.create(type, name);
       }
+      
+      // Clear ID from URL and close modal
+      const params = new URLSearchParams(searchParams);
+      params.delete('id');
+      setSearchParams(params);
+      
       setName('');
       setEditingItem(null);
       setIsModalOpen(false);
@@ -83,6 +119,13 @@ export default function MetadataPage() {
     setName(item.name);
     setType(item.type);
     setIsModalOpen(true);
+
+    // Update URL if not already there
+    if (searchParams.get('id') !== item.id.toString()) {
+      const params = new URLSearchParams(searchParams);
+      params.set('id', item.id.toString());
+      setSearchParams(params);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -267,7 +310,15 @@ export default function MetadataPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl">
             <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
               <h2 className="text-xl font-bold">{editingItem ? 'Edit Item' : 'Add Item'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-lg">
+              <button 
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.delete('id');
+                  setSearchParams(params);
+                  setIsModalOpen(false);
+                }} 
+                className="p-2 hover:bg-slate-800 rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -297,7 +348,12 @@ export default function MetadataPage() {
               <div className="flex items-center justify-end space-x-4 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams);
+                    params.delete('id');
+                    setSearchParams(params);
+                    setIsModalOpen(false);
+                  }}
                   className="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg font-medium transition-colors"
                 >
                   Cancel

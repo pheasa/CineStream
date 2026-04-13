@@ -57,6 +57,12 @@ export default function MetadataPage() {
         // Let's try to find it in the current list first.
       }
     } else {
+      // If id param exists but is empty, remove it
+      if (searchParams.has('id')) {
+        const params = new URLSearchParams(searchParams);
+        params.delete('id');
+        setSearchParams(params, { replace: true });
+      }
       setIsModalOpen(false);
       setEditingItem(null);
       setName('');

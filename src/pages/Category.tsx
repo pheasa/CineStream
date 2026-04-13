@@ -21,8 +21,9 @@ export default function CategoryPage() {
 
   // Update URL when page changes
   React.useEffect(() => {
-    const params: any = {};
-    if (currentPage > 1) params.page = currentPage.toString();
+    const params = new URLSearchParams(searchParams);
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    else params.delete('page');
     setSearchParams(params, { replace: true });
   }, [currentPage]);
 

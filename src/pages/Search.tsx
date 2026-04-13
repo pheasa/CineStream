@@ -30,13 +30,26 @@ export default function Search() {
 
   // Update URL when state changes
   React.useEffect(() => {
-    const params: any = {};
-    if (debouncedQuery) params.q = debouncedQuery;
-    if (selectedCategory) params.category = selectedCategory;
-    if (selectedCountry) params.country = selectedCountry;
-    if (selectedLanguage) params.language = selectedLanguage;
-    if (selectedSubtitle) params.subtitle = selectedSubtitle;
-    if (currentPage > 1) params.page = currentPage.toString();
+    const params = new URLSearchParams(searchParams);
+    
+    if (debouncedQuery) params.set('q', debouncedQuery);
+    else params.delete('q');
+
+    if (selectedCategory) params.set('category', selectedCategory);
+    else params.delete('category');
+
+    if (selectedCountry) params.set('country', selectedCountry);
+    else params.delete('country');
+
+    if (selectedLanguage) params.set('language', selectedLanguage);
+    else params.delete('language');
+
+    if (selectedSubtitle) params.set('subtitle', selectedSubtitle);
+    else params.delete('subtitle');
+
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    else params.delete('page');
+
     setSearchParams(params, { replace: true });
   }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle, currentPage]);
 

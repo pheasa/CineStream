@@ -92,6 +92,12 @@ export default function Movies() {
         });
       }
     } else {
+      // If id param exists but is empty, remove it
+      if (searchParams.has('id')) {
+        const params = new URLSearchParams(searchParams);
+        params.delete('id');
+        setSearchParams(params, { replace: true });
+      }
       setIsModalOpen(false);
       setEditingMovie(null);
       reset();

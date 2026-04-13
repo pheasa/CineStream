@@ -7,6 +7,7 @@ import MovieCard from '../components/MovieCard';
 import { motion } from 'motion/react';
 import AdSense from '../components/AdSense';
 import ShareModal from '../components/ShareModal';
+import { Skeleton, MovieCardSkeleton } from '../components/Skeleton';
 import { Share2 } from 'lucide-react';
 import clientConfig from '../config/client';
 
@@ -42,8 +43,37 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="space-y-12">
+        {/* Hero Skeleton */}
+        <Skeleton className="h-[70vh] w-full rounded-3xl" />
+        
+        {/* Categories Skeleton */}
+        <section className="space-y-6">
+          <div className="flex items-center space-x-2">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-48" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-xl" />
+            ))}
+          </div>
+        </section>
+
+        {/* Latest Movies Skeleton */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-8 w-48" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
+            {[...Array(14)].map((_, i) => (
+              <MovieCardSkeleton key={i} />
+            ))}
+          </div>
+        </section>
       </div>
     );
   }

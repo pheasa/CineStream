@@ -6,6 +6,7 @@ import MovieCard from '../components/MovieCard';
 import { ChevronRight, Filter } from 'lucide-react';
 import AdSense from '../components/AdSense';
 import Pagination from '../components/Pagination';
+import { Skeleton, MovieCardSkeleton } from '../components/Skeleton';
 import clientConfig from '../config/client';
 import { QueryParams, FilterValues, DEFAULT_PAGINATION, MetadataTypes } from '../constants';
 
@@ -59,8 +60,16 @@ export default function CategoryPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-10 w-64" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
+          {[...Array(14)].map((_, i) => (
+            <MovieCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }

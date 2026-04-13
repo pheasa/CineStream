@@ -8,6 +8,7 @@ import { formatDate } from '../lib/utils';
 import AdSense from '../components/AdSense';
 import ShareModal from '../components/ShareModal';
 import AdOverlay from '../components/AdOverlay';
+import { Skeleton, MovieCardSkeleton } from '../components/Skeleton';
 import clientConfig from '../config/client';
 
 export default function Watch() {
@@ -44,8 +45,36 @@ export default function Watch() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="space-y-8">
+        <Skeleton className="h-4 w-48" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="aspect-video w-full rounded-2xl" />
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-3/4" />
+              <div className="flex gap-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-24 w-full rounded-xl" />
+            </div>
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-6 w-32" />
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex space-x-4">
+                  <Skeleton className="w-24 h-32 shrink-0 rounded-lg" />
+                  <div className="flex-1 flex flex-col justify-center space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

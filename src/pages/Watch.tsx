@@ -8,7 +8,6 @@ import { formatDate } from '../lib/utils';
 import AdSense from '../components/AdSense';
 import ShareModal from '../components/ShareModal';
 import AdOverlay from '../components/AdOverlay';
-import RumblePlayer from '../components/RumblePlayer';
 import clientConfig from '../config/client';
 
 export default function Watch() {
@@ -20,19 +19,6 @@ export default function Watch() {
   const [isInterstitialOpen, setIsInterstitialOpen] = React.useState(false);
 
   const currentUrl = window.location.href;
-
-  // Helper to determine if embedCode is a Rumble ID
-  const isRumbleId = (code: string) => {
-    const trimmed = code.trim();
-    // Simple check: if it's just alphanumeric and doesn't contain HTML tags or dots/slashes
-    return /^[a-z0-9]+$/i.test(trimmed) && !trimmed.includes('.') && !trimmed.includes('/');
-  };
-
-  // Helper to determine if embedCode is a URL
-  const isUrl = (code: string) => {
-    const trimmed = code.trim();
-    return /^https?:\/\//i.test(trimmed) && !trimmed.includes('<');
-  };
 
   React.useEffect(() => {
     if (id) {
@@ -95,21 +81,12 @@ export default function Watch() {
 
           {/* Video Player */}
           <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
-            {isRumbleId(movie.embedCode) ? (
-              <RumblePlayer videoId={movie.embedCode.trim()} />
-            ) : isUrl(movie.embedCode) ? (
-              <iframe 
-                src={movie.embedCode.trim()}
-                className="w-full h-full border-0"
-                allowFullScreen
-                title={movie.title}
-              />
-            ) : (
-              <div 
-                className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
-                dangerouslySetInnerHTML={{ __html: movie.embedCode }}
-              />
-            )}
+            <iframe 
+              src={movie.embedCode.trim()}
+              className="w-full h-full border-0"
+              allowFullScreen
+              title={movie.title}
+            />
           </div>
 
           {/* Bottom of Player Ad */}

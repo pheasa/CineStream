@@ -36,10 +36,11 @@ export default function Watch() {
           return movieService.getAll();
         })
         .then(all => {
+          const numericId = Number(id);
           if (movie) {
-            setRelatedMovies(all.filter(m => m.id !== id && m.category === movie.category).slice(0, 5));
+            setRelatedMovies(all.filter(m => m.id !== numericId && m.category === movie.category).slice(0, 5));
           } else {
-            setRelatedMovies(all.filter(m => m.id !== id).slice(0, 5));
+            setRelatedMovies(all.filter(m => m.id !== numericId).slice(0, 5));
           }
         })
         .finally(() => setLoading(false));
@@ -142,11 +143,11 @@ export default function Watch() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <h3 className="font-semibold mb-3">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {movie.tags.split(',').map(tag => (
+                {movie.tags ? movie.tags.split(',').map(tag => (
                   <span key={tag} className="px-3 py-1 bg-slate-800 rounded-full text-xs text-slate-300">
                     #{tag.trim()}
                   </span>
-                ))}
+                )) : <span className="text-slate-500 italic text-sm">No tags available</span>}
               </div>
             </div>
           </div>

@@ -50,7 +50,7 @@ export default function MetadataPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       try {
         await metadataService.delete(id);

@@ -23,17 +23,17 @@ export const authService = {
 
 export const movieService = {
   getAll: () => api.get<Movie[]>('/movies').then(res => res.data),
-  getById: (id: string) => api.get<Movie>(`/movies/${id}`).then(res => res.data),
+  getById: (id: number | string) => api.get<Movie>(`/movies/${id}`).then(res => res.data),
   create: (movie: Omit<Movie, 'id' | 'createdAt'>) => api.post<Movie>('/movies', { ...movie, createdAt: new Date().toISOString() }).then(res => res.data),
-  update: (id: string, movie: Partial<Movie>) => api.put<Movie>(`/movies/${id}`, movie).then(res => res.data),
-  delete: (id: string) => api.delete(`/movies/${id}`),
+  update: (id: number | string, movie: Partial<Movie>) => api.put<Movie>(`/movies/${id}`, movie).then(res => res.data),
+  delete: (id: number | string) => api.delete(`/movies/${id}`),
 };
 
 export const metadataService = {
   getAll: (type?: string) => api.get<Metadata[]>('/metadata', { params: { type } }).then(res => res.data),
   create: (type: string, name: string) => api.post<Metadata>('/metadata', { type, name }).then(res => res.data),
-  update: (id: string, type: string, name: string) => api.put<Metadata>(`/metadata/${id}`, { type, name }).then(res => res.data),
-  delete: (id: string) => api.delete(`/metadata/${id}`),
+  update: (id: number | string, type: string, name: string) => api.put<Metadata>(`/metadata/${id}`, { type, name }).then(res => res.data),
+  delete: (id: number | string) => api.delete(`/metadata/${id}`),
 };
 
 export const statsService = {

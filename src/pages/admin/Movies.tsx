@@ -117,7 +117,7 @@ export default function Movies() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this movie?')) {
       await movieService.delete(id);
       fetchData();

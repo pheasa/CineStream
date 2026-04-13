@@ -1,5 +1,5 @@
 export interface Movie {
-  id: string;
+  id: number;
   title: string;
   thumbnail: string;
   embedCode: string;
@@ -13,7 +13,7 @@ export interface Movie {
 }
 
 export interface Metadata {
-  id: string;
+  id: number;
   type: string;
   name: string;
 }

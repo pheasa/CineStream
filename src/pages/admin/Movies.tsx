@@ -9,6 +9,7 @@ import { Plus, Search, Edit2, Trash2, X, Upload, Loader2, ExternalLink, Filter }
 import { cn } from '../../lib/utils';
 import Pagination from '../../components/Pagination';
 import { useDebounce } from '../../hooks/useDebounce';
+import { QueryParams, FilterValues, DEFAULT_PAGINATION, MetadataTypes } from '../../constants';
 
 const movieSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -20,8 +21,6 @@ const movieSchema = z.object({
   subtitle: z.string().min(1, 'Subtitle is required'),
   tags: z.string().optional(),
 });
-
-const ITEMS_PER_PAGE = 10;
 
 type MovieFormData = z.infer<typeof movieSchema>;
 
@@ -38,12 +37,12 @@ export default function Movies() {
   const [uploading, setUploading] = React.useState(false);
 
   // Initialize state from URL
-  const [searchQuery, setSearchQuery] = React.useState(searchParams.get('q') || '');
-  const [filterCategory, setFilterCategory] = React.useState(searchParams.get('category') || 'all');
-  const [filterCountry, setFilterCountry] = React.useState(searchParams.get('country') || 'all');
-  const [filterLanguage, setFilterLanguage] = React.useState(searchParams.get('language') || 'all');
-  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
-  const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get('limit')) || 10);
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get(QueryParams.QUERY) || '');
+  const [filterCategory, setFilterCategory] = React.useState(searchParams.get(QueryParams.CATEGORY) || FilterValues.ALL);
+  const [filterCountry, setFilterCountry] = React.useState(searchParams.get(QueryParams.COUNTRY) || FilterValues.ALL);
+  const [filterLanguage, setFilterLanguage] = React.useState(searchParams.get(QueryParams.LANGUAGE) || FilterValues.ALL);
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get(QueryParams.PAGE)) || DEFAULT_PAGINATION.PAGE);
+  const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get(QueryParams.LIMIT)) || DEFAULT_PAGINATION.LIMIT);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 800);
 
@@ -51,30 +50,30 @@ export default function Movies() {
   React.useEffect(() => {
     const params: URLSearchParams = new URLSearchParams(searchParams);
     
-    if (debouncedSearchQuery) params.set('q', debouncedSearchQuery);
-    else params.delete('q');
+    if (debouncedSearchQuery) params.set(QueryParams.QUERY, debouncedSearchQuery);
+    else params.delete(QueryParams.QUERY);
 
-    if (filterCategory !== 'all') params.set('category', filterCategory);
-    else params.delete('category');
+    if (filterCategory !== FilterValues.ALL) params.set(QueryParams.CATEGORY, filterCategory);
+    else params.delete(QueryParams.CATEGORY);
 
-    if (filterCountry !== 'all') params.set('country', filterCountry);
-    else params.delete('country');
+    if (filterCountry !== FilterValues.ALL) params.set(QueryParams.COUNTRY, filterCountry);
+    else params.delete(QueryParams.COUNTRY);
 
-    if (filterLanguage !== 'all') params.set('language', filterLanguage);
-    else params.delete('language');
+    if (filterLanguage !== FilterValues.ALL) params.set(QueryParams.LANGUAGE, filterLanguage);
+    else params.delete(QueryParams.LANGUAGE);
 
-    if (currentPage > 1) params.set('page', currentPage.toString());
-    else params.delete('page');
+    if (currentPage > DEFAULT_PAGINATION.PAGE) params.set(QueryParams.PAGE, currentPage.toString());
+    else params.delete(QueryParams.PAGE);
 
-    if (itemsPerPage !== 10) params.set('limit', itemsPerPage.toString());
-    else params.delete('limit');
+    if (itemsPerPage !== DEFAULT_PAGINATION.LIMIT) params.set(QueryParams.LIMIT, itemsPerPage.toString());
+    else params.delete(QueryParams.LIMIT);
 
     setSearchParams(params, { replace: true });
   }, [debouncedSearchQuery, filterCategory, filterCountry, filterLanguage, currentPage, itemsPerPage]);
 
   // Handle ID from URL for editing
   React.useEffect(() => {
-    const id = searchParams.get('id');
+    const id = searchParams.get(QueryParams.ID);
     if (id) {
       const numericId = Number(id);
       const movie = movies.find(m => m.id === numericId);
@@ -87,22 +86,22 @@ export default function Movies() {
         }).catch(() => {
           // If movie not found, clear ID from URL
           const params = new URLSearchParams(searchParams);
-          params.delete('id');
+          params.delete(QueryParams.ID);
           setSearchParams(params, { replace: true });
         });
       }
     } else {
       // If id param exists but is empty, remove it
-      if (searchParams.has('id')) {
+      if (searchParams.has(QueryParams.ID)) {
         const params = new URLSearchParams(searchParams);
-        params.delete('id');
+        params.delete(QueryParams.ID);
         setSearchParams(params, { replace: true });
       }
       setIsModalOpen(false);
       setEditingMovie(null);
       reset();
     }
-  }, [searchParams.get('id')]);
+  }, [searchParams.get(QueryParams.ID)]);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
@@ -138,9 +137,9 @@ export default function Movies() {
 
   const fetchMetadata = () => {
     Promise.all([
-      metadataService.getAll({ type: 'category', limit: 100 }),
-      metadataService.getAll({ type: 'country', limit: 100 }),
-      metadataService.getAll({ type: 'language', limit: 100 })
+      metadataService.getAll({ type: MetadataTypes.CATEGORY, limit: 100 }),
+      metadataService.getAll({ type: MetadataTypes.COUNTRY, limit: 100 }),
+      metadataService.getAll({ type: MetadataTypes.LANGUAGE, limit: 100 })
     ]).then(([cat, cou, lang]) => {
       setCategories(cat.data);
       setCountries(cou.data);
@@ -182,7 +181,7 @@ export default function Movies() {
       
       // Clear ID from URL and close modal
       const params = new URLSearchParams(searchParams);
-      params.delete('id');
+      params.delete(QueryParams.ID);
       setSearchParams(params);
       
       setIsModalOpen(false);
@@ -210,9 +209,9 @@ export default function Movies() {
     setIsModalOpen(true);
 
     // Update URL if not already there
-    if (searchParams.get('id') !== movie.id.toString()) {
+    if (searchParams.get(QueryParams.ID) !== movie.id.toString()) {
       const params = new URLSearchParams(searchParams);
-      params.set('id', movie.id.toString());
+      params.set(QueryParams.ID, movie.id.toString());
       setSearchParams(params);
     }
   };
@@ -420,7 +419,7 @@ export default function Movies() {
               <button 
                 onClick={() => {
                   const params = new URLSearchParams(searchParams);
-                  params.delete('id');
+                  params.delete(QueryParams.ID);
                   setSearchParams(params);
                   setIsModalOpen(false);
                 }} 
@@ -609,7 +608,7 @@ export default function Movies() {
                   type="button"
                   onClick={() => {
                     const params = new URLSearchParams(searchParams);
-                    params.delete('id');
+                    params.delete(QueryParams.ID);
                     setSearchParams(params);
                     setIsModalOpen(false);
                   }}

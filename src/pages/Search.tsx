@@ -6,8 +6,7 @@ import { movieService, metadataService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
 import { useDebounce } from '../hooks/useDebounce';
-
-const ITEMS_PER_PAGE = 15;
+import { QueryParams, FilterValues, DEFAULT_PAGINATION, MetadataTypes } from '../constants';
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,12 +18,12 @@ export default function Search() {
   const [loading, setLoading] = React.useState(true);
 
   // Initialize state from URL
-  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
-  const [query, setQuery] = React.useState(searchParams.get('q') || '');
-  const [selectedCategory, setSelectedCategory] = React.useState(searchParams.get('category') || '');
-  const [selectedCountry, setSelectedCountry] = React.useState(searchParams.get('country') || '');
-  const [selectedLanguage, setSelectedLanguage] = React.useState(searchParams.get('language') || '');
-  const [selectedSubtitle, setSelectedSubtitle] = React.useState(searchParams.get('subtitle') || '');
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get(QueryParams.PAGE)) || DEFAULT_PAGINATION.PAGE);
+  const [query, setQuery] = React.useState(searchParams.get(QueryParams.QUERY) || '');
+  const [selectedCategory, setSelectedCategory] = React.useState(searchParams.get(QueryParams.CATEGORY) || '');
+  const [selectedCountry, setSelectedCountry] = React.useState(searchParams.get(QueryParams.COUNTRY) || '');
+  const [selectedLanguage, setSelectedLanguage] = React.useState(searchParams.get(QueryParams.LANGUAGE) || '');
+  const [selectedSubtitle, setSelectedSubtitle] = React.useState(searchParams.get(QueryParams.SUBTITLE) || '');
 
   const debouncedQuery = useDebounce(query, 800);
 
@@ -32,23 +31,23 @@ export default function Search() {
   React.useEffect(() => {
     const params = new URLSearchParams(searchParams);
     
-    if (debouncedQuery) params.set('q', debouncedQuery);
-    else params.delete('q');
+    if (debouncedQuery) params.set(QueryParams.QUERY, debouncedQuery);
+    else params.delete(QueryParams.QUERY);
 
-    if (selectedCategory) params.set('category', selectedCategory);
-    else params.delete('category');
+    if (selectedCategory) params.set(QueryParams.CATEGORY, selectedCategory);
+    else params.delete(QueryParams.CATEGORY);
 
-    if (selectedCountry) params.set('country', selectedCountry);
-    else params.delete('country');
+    if (selectedCountry) params.set(QueryParams.COUNTRY, selectedCountry);
+    else params.delete(QueryParams.COUNTRY);
 
-    if (selectedLanguage) params.set('language', selectedLanguage);
-    else params.delete('language');
+    if (selectedLanguage) params.set(QueryParams.LANGUAGE, selectedLanguage);
+    else params.delete(QueryParams.LANGUAGE);
 
-    if (selectedSubtitle) params.set('subtitle', selectedSubtitle);
-    else params.delete('subtitle');
+    if (selectedSubtitle) params.set(QueryParams.SUBTITLE, selectedSubtitle);
+    else params.delete(QueryParams.SUBTITLE);
 
-    if (currentPage > 1) params.set('page', currentPage.toString());
-    else params.delete('page');
+    if (currentPage > DEFAULT_PAGINATION.PAGE) params.set(QueryParams.PAGE, currentPage.toString());
+    else params.delete(QueryParams.PAGE);
 
     setSearchParams(params, { replace: true });
   }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, selectedSubtitle, currentPage]);
@@ -57,11 +56,11 @@ export default function Search() {
     setLoading(true);
     movieService.getAll({
       page: currentPage,
-      limit: ITEMS_PER_PAGE,
+      limit: DEFAULT_PAGINATION.PUBLIC_LIMIT,
       search: debouncedQuery,
-      category: selectedCategory || 'all',
-      country: selectedCountry || 'all',
-      language: selectedLanguage || 'all'
+      category: selectedCategory || FilterValues.ALL,
+      country: selectedCountry || FilterValues.ALL,
+      language: selectedLanguage || FilterValues.ALL
     }).then(res => {
       setMovies(res.data);
       setTotalItems(res.total);
@@ -70,9 +69,9 @@ export default function Search() {
 
   const fetchMetadata = () => {
     Promise.all([
-      metadataService.getAll({ type: 'category', limit: 100 }),
-      metadataService.getAll({ type: 'country', limit: 100 }),
-      metadataService.getAll({ type: 'language', limit: 100 })
+      metadataService.getAll({ type: MetadataTypes.CATEGORY, limit: 100 }),
+      metadataService.getAll({ type: MetadataTypes.COUNTRY, limit: 100 }),
+      metadataService.getAll({ type: MetadataTypes.LANGUAGE, limit: 100 })
     ]).then(([cat, cou, lang]) => {
       setCategories(cat.data);
       setCountries(cou.data);
@@ -88,7 +87,7 @@ export default function Search() {
     fetchMovies();
   }, [debouncedQuery, selectedCategory, selectedCountry, selectedLanguage, currentPage]);
 
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(totalItems / DEFAULT_PAGINATION.PUBLIC_LIMIT);
 
   React.useEffect(() => {
     setCurrentPage(1);

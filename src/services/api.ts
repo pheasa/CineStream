@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Movie, Stats, Metadata, PaginatedResponse } from '../types';
+import { MetadataTypes } from '../constants';
 
 const api = axios.create({
   baseURL: '/api',

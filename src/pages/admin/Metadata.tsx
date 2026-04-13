@@ -4,6 +4,7 @@ import { metadataService } from '../../services/api';
 import { Metadata } from '../../types';
 import { Plus, Edit2, Trash2, Loader2, X, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDebounce } from '../../hooks/useDebounce';
+import { QueryParams, FilterValues, DEFAULT_PAGINATION, MetadataTypes } from '../../constants';
 
 export default function MetadataPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,13 +14,13 @@ export default function MetadataPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<Metadata | null>(null);
   const [name, setName] = React.useState('');
-  const [type, setType] = React.useState('language');
+  const [type, setType] = React.useState(MetadataTypes.LANGUAGE);
 
   // Initialize state from URL
-  const [filterType, setFilterType] = React.useState(searchParams.get('type') || 'all');
-  const [searchTerm, setSearchTerm] = React.useState(searchParams.get('q') || '');
-  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
-  const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get('limit')) || 10);
+  const [filterType, setFilterType] = React.useState(searchParams.get(QueryParams.TYPE) || FilterValues.ALL);
+  const [searchTerm, setSearchTerm] = React.useState(searchParams.get(QueryParams.QUERY) || '');
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get(QueryParams.PAGE)) || DEFAULT_PAGINATION.PAGE);
+  const [itemsPerPage, setItemsPerPage] = React.useState(Number(searchParams.get(QueryParams.LIMIT)) || DEFAULT_PAGINATION.LIMIT);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
 
@@ -27,24 +28,24 @@ export default function MetadataPage() {
   React.useEffect(() => {
     const params: URLSearchParams = new URLSearchParams(searchParams);
     
-    if (debouncedSearchTerm) params.set('q', debouncedSearchTerm);
-    else params.delete('q');
+    if (debouncedSearchTerm) params.set(QueryParams.QUERY, debouncedSearchTerm);
+    else params.delete(QueryParams.QUERY);
 
-    if (filterType !== 'all') params.set('type', filterType);
-    else params.delete('type');
+    if (filterType !== FilterValues.ALL) params.set(QueryParams.TYPE, filterType);
+    else params.delete(QueryParams.TYPE);
 
-    if (currentPage > 1) params.set('page', currentPage.toString());
-    else params.delete('page');
+    if (currentPage > DEFAULT_PAGINATION.PAGE) params.set(QueryParams.PAGE, currentPage.toString());
+    else params.delete(QueryParams.PAGE);
 
-    if (itemsPerPage !== 10) params.set('limit', itemsPerPage.toString());
-    else params.delete('limit');
+    if (itemsPerPage !== DEFAULT_PAGINATION.LIMIT) params.set(QueryParams.LIMIT, itemsPerPage.toString());
+    else params.delete(QueryParams.LIMIT);
 
     setSearchParams(params, { replace: true });
   }, [debouncedSearchTerm, filterType, currentPage, itemsPerPage]);
 
   // Handle ID from URL for editing
   React.useEffect(() => {
-    const id = searchParams.get('id');
+    const id = searchParams.get(QueryParams.ID);
     if (id) {
       const numericId = Number(id);
       const item = metadata.find(m => m.id === numericId);
@@ -58,16 +59,16 @@ export default function MetadataPage() {
       }
     } else {
       // If id param exists but is empty, remove it
-      if (searchParams.has('id')) {
+      if (searchParams.has(QueryParams.ID)) {
         const params = new URLSearchParams(searchParams);
-        params.delete('id');
+        params.delete(QueryParams.ID);
         setSearchParams(params, { replace: true });
       }
       setIsModalOpen(false);
       setEditingItem(null);
       setName('');
     }
-  }, [searchParams.get('id'), metadata]);
+  }, [searchParams.get(QueryParams.ID), metadata]);
 
   const fetchMetadata = () => {
     setLoading(true);
@@ -107,7 +108,7 @@ export default function MetadataPage() {
       
       // Clear ID from URL and close modal
       const params = new URLSearchParams(searchParams);
-      params.delete('id');
+      params.delete(QueryParams.ID);
       setSearchParams(params);
       
       setName('');
@@ -127,9 +128,9 @@ export default function MetadataPage() {
     setIsModalOpen(true);
 
     // Update URL if not already there
-    if (searchParams.get('id') !== item.id.toString()) {
+    if (searchParams.get(QueryParams.ID) !== item.id.toString()) {
       const params = new URLSearchParams(searchParams);
-      params.set('id', item.id.toString());
+      params.set(QueryParams.ID, item.id.toString());
       setSearchParams(params);
     }
   };
@@ -153,7 +154,7 @@ export default function MetadataPage() {
           onClick={() => {
             setEditingItem(null);
             setName('');
-            setType('language');
+            setType(MetadataTypes.LANGUAGE);
             setIsModalOpen(true);
           }}
           className="flex items-center justify-center space-x-2 px-4 py-2 bg-indigo-600 rounded-lg font-medium hover:bg-indigo-500 transition-colors"
@@ -181,10 +182,10 @@ export default function MetadataPage() {
             onChange={(e) => setFilterType(e.target.value)}
             className="bg-transparent border-none focus:ring-0 text-sm font-medium"
           >
-            <option value="all">All Types</option>
-            <option value="category">Categories</option>
-            <option value="language">Languages</option>
-            <option value="country">Countries</option>
+            <option value={FilterValues.ALL}>All Types</option>
+            <option value={MetadataTypes.CATEGORY}>Categories</option>
+            <option value={MetadataTypes.LANGUAGE}>Languages</option>
+            <option value={MetadataTypes.COUNTRY}>Countries</option>
           </select>
         </div>
       </div>
@@ -336,9 +337,9 @@ export default function MetadataPage() {
                   value={type}
                   onChange={(e) => setType(e.target.value)}
                 >
-                  <option value="category">Category</option>
-                  <option value="language">Language</option>
-                  <option value="country">Country</option>
+                  <option value={MetadataTypes.CATEGORY}>Category</option>
+                  <option value={MetadataTypes.LANGUAGE}>Language</option>
+                  <option value={MetadataTypes.COUNTRY}>Country</option>
                 </select>
               </div>
               <div className="space-y-2">
@@ -356,7 +357,7 @@ export default function MetadataPage() {
                   type="button"
                   onClick={() => {
                     const params = new URLSearchParams(searchParams);
-                    params.delete('id');
+                    params.delete(QueryParams.ID);
                     setSearchParams(params);
                     setIsModalOpen(false);
                   }}

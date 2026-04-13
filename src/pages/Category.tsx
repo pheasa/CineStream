@@ -7,8 +7,7 @@ import { ChevronRight, Filter } from 'lucide-react';
 import AdSense from '../components/AdSense';
 import Pagination from '../components/Pagination';
 import clientConfig from '../config/client';
-
-const ITEMS_PER_PAGE = 12;
+import { QueryParams, FilterValues, DEFAULT_PAGINATION, MetadataTypes } from '../constants';
 
 export default function CategoryPage() {
   const { name } = useParams<{ name: string }>();
@@ -17,13 +16,13 @@ export default function CategoryPage() {
   const [totalItems, setTotalItems] = React.useState(0);
   const [categories, setCategories] = React.useState<Metadata[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get('page')) || 1);
+  const [currentPage, setCurrentPage] = React.useState(Number(searchParams.get(QueryParams.PAGE)) || DEFAULT_PAGINATION.PAGE);
 
   // Update URL when page changes
   React.useEffect(() => {
     const params = new URLSearchParams(searchParams);
-    if (currentPage > 1) params.set('page', currentPage.toString());
-    else params.delete('page');
+    if (currentPage > DEFAULT_PAGINATION.PAGE) params.set(QueryParams.PAGE, currentPage.toString());
+    else params.delete(QueryParams.PAGE);
     setSearchParams(params, { replace: true });
   }, [currentPage]);
 
@@ -31,8 +30,8 @@ export default function CategoryPage() {
     setLoading(true);
     movieService.getAll({
       page: currentPage,
-      limit: ITEMS_PER_PAGE,
-      category: name || 'all'
+      limit: DEFAULT_PAGINATION.CATEGORY_LIMIT,
+      category: name || FilterValues.ALL
     }).then(res => {
       setMovies(res.data);
       setTotalItems(res.total);
@@ -40,7 +39,7 @@ export default function CategoryPage() {
   };
 
   const fetchMetadata = () => {
-    metadataService.getAll({ type: 'category', limit: 100 })
+    metadataService.getAll({ type: MetadataTypes.CATEGORY, limit: 100 })
       .then(res => setCategories(res.data));
   };
 
@@ -52,7 +51,7 @@ export default function CategoryPage() {
     fetchMovies();
   }, [name, currentPage]);
 
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(totalItems / DEFAULT_PAGINATION.CATEGORY_LIMIT);
 
   React.useEffect(() => {
     setCurrentPage(1);

@@ -147,22 +147,30 @@ export default function Watch() {
                 <Calendar className="w-4 h-4" />
                 <span>{formatDate(movie.createdAt)}</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <Globe className="w-4 h-4" />
-                <span>{movie.country}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Tag className="w-4 h-4" />
-                <span>{movie.category}</span>
-              </div>
-              <div className="flex items-center space-x-1 text-indigo-400">
-                <Mic className="w-4 h-4" />
-                <span>Speak: {movie.language}</span>
-              </div>
-              <div className="flex items-center space-x-1 text-indigo-400">
-                <Subtitles className="w-4 h-4" />
-                <span>Subtitle: {movie.subtitle}</span>
-              </div>
+              {movie.country && movie.country !== 'None' && (
+                <div className="flex items-center space-x-1">
+                  <Globe className="w-4 h-4" />
+                  <span>{movie.country}</span>
+                </div>
+              )}
+              {movie.category && movie.category !== 'None' && (
+                <div className="flex items-center space-x-1">
+                  <Tag className="w-4 h-4" />
+                  <span>{movie.category}</span>
+                </div>
+              )}
+              {movie.language && movie.language !== 'None' && (
+                <div className="flex items-center space-x-1 text-indigo-400">
+                  <Mic className="w-4 h-4" />
+                  <span>Speak: {movie.language}</span>
+                </div>
+              )}
+              {movie.subtitle && movie.subtitle !== 'None' && (
+                <div className="flex items-center space-x-1 text-indigo-400">
+                  <Subtitles className="w-4 h-4" />
+                  <span>Subtitle: {movie.subtitle}</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">

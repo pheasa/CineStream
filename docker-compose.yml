@@ -6,10 +6,7 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/cinestream
-      - NODE_ENV=development
-      - VITE_APP_NAME=CineStream
-      - VITE_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX
+      - NODE_ENV=${NODE_ENV:-development}
     # Override the command to use watch mode for development
     command: npx tsx watch server.ts
     depends_on:

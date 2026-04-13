@@ -81,11 +81,9 @@ export default function Watch() {
 
           {/* Video Player */}
           <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
-            <iframe 
-              src={movie.embedCode.trim()}
-              className="w-full h-full border-0"
-              allowFullScreen
-              title={movie.title}
+            <div 
+              className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
+              dangerouslySetInnerHTML={{ __html: movie.embedCode }}
             />
           </div>
 

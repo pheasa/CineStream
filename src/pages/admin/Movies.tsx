@@ -594,13 +594,14 @@ export default function Movies() {
 
               {/* Bottom: Embed Code */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400">Video Embed URL</label>
-                <input
+                <label className="text-sm font-medium text-slate-400">Embed Code (Iframe)</label>
+                <textarea
                   {...register('embedCode')}
+                  rows={4}
                   className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
-                  placeholder="https://rumble.com/embed/v75wufu/"
+                  placeholder='<iframe src="..." ...></iframe>'
                 />
-                <p className="text-[10px] text-slate-500 italic">Enter the direct embed URL of the video.</p>
+                <p className="text-[10px] text-slate-500 italic">Paste the full iframe embed code here.</p>
                 {errors.embedCode && <p className="text-xs text-rose-500">{errors.embedCode.message}</p>}
               </div>
 

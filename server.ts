@@ -328,10 +328,9 @@ async function startServer() {
     const clientKeys = Object.keys(clientEnvSchema.shape);
     
     clientKeys.forEach(key => {
-      // Use import.meta.env (polyfilled at startup)
-      const env = (import.meta as any).env;
-      if (env && env[key] !== undefined) {
-        clientEnvs[key] = env[key] || '';
+      // Use process.env which is the standard global in Node.js
+      if (process.env[key] !== undefined) {
+        clientEnvs[key] = process.env[key] || '';
       }
     });
 

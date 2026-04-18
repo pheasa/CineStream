@@ -9,6 +9,11 @@ import FormData from 'form-data';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+
+// Load .env file
+dotenv.config();
+
 import serverConfig from "./src/config/server";
 
 const { Pool } = pg;
@@ -668,9 +673,31 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    
+    // Serve static assets EXCEPT index.html
+    app.use(express.static(distPath, { index: false }));
+
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      const indexPath = path.join(distPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        let html = fs.readFileSync(indexPath, "utf8");
+        
+        // Collect VITE_ variables from process.env
+        const clientEnvs: Record<string, string> = {};
+        Object.keys(process.env).forEach(key => {
+          if (key.startsWith('VITE_')) {
+            clientEnvs[key] = process.env[key] || '';
+          }
+        });
+
+        // Inject window.ENV script
+        const envScript = `<script>window.ENV = ${JSON.stringify(clientEnvs)}</script>`;
+        html = html.replace('<head>', `<head>${envScript}`);
+        
+        res.send(html);
+      } else {
+        res.status(404).send("Industrial Strength Cinema: App not built. Please run 'npm run build' if you want to use production mode.");
+      }
     });
   }
 

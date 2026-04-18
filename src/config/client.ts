@@ -1,27 +1,11 @@
-import { clientEnvSchema, parseEnv, type ClientEnv } from './env';
+import { clientEnvSchema, parseEnv } from "./env";
 
 /**
  * Validated client-side environment variables.
- * In development, Vite provides these via import.meta.env.
- * In production, we can update these at runtime via an API call.
+ * These are safe to use in the browser.
+ * We prefer window.ENV (injected by the server in production)
+ * over import.meta.env (baked in at build time).
  */
-let currentConfig: ClientEnv = parseEnv(clientEnvSchema, import.meta.env);
-
-// Export a proxy so that components always get the latest value from currentConfig
-export const clientConfig = new Proxy({} as ClientEnv, {
-  get(_, prop: string) {
-    return (currentConfig as any)[prop];
-  }
-});
-
-/**
- * Updates the global client configuration at runtime.
- */
-export function updateClientConfig(newConfig: Partial<ClientEnv>) {
-  currentConfig = {
-    ...currentConfig,
-    ...newConfig
-  };
-}
+export const clientConfig = parseEnv(clientEnvSchema, import.meta.env);
 
 export default clientConfig;

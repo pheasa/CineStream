@@ -2,16 +2,33 @@ services:
   app:
     build: .
     ports:
-      - "80:3000"
+      - "3000:3000"
     env_file:
       - .env
     environment:
       - NODE_ENV=${NODE_ENV:-development}
+    # Override the command to use watch mode for development
     command: npx tsx watch server.ts
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
-      # - .:/app
-      # - /app/node_modules
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - .:/app
+      - /app/node_modules
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=cinestream
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d cinestream"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

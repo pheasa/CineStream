@@ -682,11 +682,16 @@ async function startServer() {
       if (fs.existsSync(indexPath)) {
         let html = fs.readFileSync(indexPath, "utf8");
         
-        // Collect VITE_ variables from process.env
+        // Collect VITE_ variables from process.env, EXCLUDING sensitive keys
         const clientEnvs: Record<string, string> = {};
+        const sensitivePatterns = ['PASSWORD', 'SECRET', 'KEY', 'TOKEN', 'HASH'];
+        
         Object.keys(process.env).forEach(key => {
           if (key.startsWith('VITE_')) {
-            clientEnvs[key] = process.env[key] || '';
+            const isSensitive = sensitivePatterns.some(pattern => key.toUpperCase().includes(pattern));
+            if (!isSensitive) {
+              clientEnvs[key] = process.env[key] || '';
+            }
           }
         });
 

@@ -6,8 +6,6 @@ import { z } from 'zod';
  */
 export const clientEnvSchema = z.object({
   VITE_APP_NAME: z.string(),
-  VITE_ADMIN_USERNAME: z.string().nullable().default(null),
-  VITE_ADMIN_PASSWORD: z.string().nullable().default(null),
   VITE_ADSENSE_CLIENT_ID: z.string().default('ca-pub-XXXXXXXXXXXXXXXX'),
   VITE_ADSENSE_HOME_MID_SLOT: z.string().default(''),
   VITE_ADSENSE_HOME_BOTTOM_SLOT: z.string().default(''),
@@ -27,9 +25,9 @@ export const clientEnvSchema = z.object({
  * These are NOT accessible in the browser.
  */
 export const serverEnvSchema = z.object({
-  DATABASE_URL: z.string().optional(),
+  DATABASE_URL: z.string(),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
-  JWT_SECRET: z.string().default('your-secret-key'),
+  JWT_SECRET: z.string(),
   CATBOX_USER_HASH: z.string().nullable().default(null),
   CATBOX_ALBUM_SHORT: z.string().nullable().default(null),
   PORT: z.coerce.number().default(3000),

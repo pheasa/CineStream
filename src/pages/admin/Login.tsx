@@ -84,7 +84,7 @@ export default function Login() {
 
         <div className="text-center">
           <p className="text-xs text-slate-600">
-            Demo credentials: <strong>{clientConfig.VITE_ADMIN_USERNAME}</strong> / <strong>{clientConfig.VITE_ADMIN_PASSWORD}</strong>
+            Secure Administrator Access
           </p>
         </div>
       </div>

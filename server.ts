@@ -14,6 +14,11 @@ import dotenv from 'dotenv';
 // Load .env file
 dotenv.config();
 
+// Polyfill import.meta.env for consistency with client-side Vite conventions
+if (!(import.meta as any).env) {
+  (import.meta as any).env = process.env;
+}
+
 import serverConfig from "./src/config/server";
 import { clientEnvSchema } from "./src/config/env";
 
@@ -331,9 +336,10 @@ async function startServer() {
     const clientKeys = Object.keys(clientEnvSchema.shape);
     
     clientKeys.forEach(key => {
-      // Only send values that exist and aren't sensitive (schema should handle this, but it's a safe fallback)
-      if (process.env[key] !== undefined) {
-        clientEnvs[key] = process.env[key] || '';
+      // Use import.meta.env (polyfilled at startup)
+      const env = (import.meta as any).env;
+      if (env && env[key] !== undefined) {
+        clientEnvs[key] = env[key] || '';
       }
     });
 

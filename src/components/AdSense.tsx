@@ -12,7 +12,6 @@ export default function AdSense({ slot, format = 'auto', className }: AdSensePro
   const adRef = React.useRef<HTMLDivElement>(null);
   const initialized = React.useRef(false);
   const adClient = clientConfig.VITE_ADSENSE_CLIENT_ID;
-  console.log('AdSense Client ID:', clientConfig.VITE_APP_NAME);
 
   React.useEffect(() => {
     if (initialized.current) return;

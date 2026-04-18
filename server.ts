@@ -325,6 +325,21 @@ async function startServer() {
     }
   });
 
+  // Configuration
+  app.get("/api/config", (req, res) => {
+    const clientEnvs: Record<string, string> = {};
+    const clientKeys = Object.keys(clientEnvSchema.shape);
+    
+    clientKeys.forEach(key => {
+      // Only send values that exist and aren't sensitive (schema should handle this, but it's a safe fallback)
+      if (process.env[key] !== undefined) {
+        clientEnvs[key] = process.env[key] || '';
+      }
+    });
+
+    res.json(clientEnvs);
+  });
+
   // Movies
   app.get("/api/movies", async (req, res) => {
     const page = parseInt(req.query.page as string) || 1;

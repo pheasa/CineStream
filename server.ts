@@ -15,6 +15,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import serverConfig from "./src/config/server";
+import { clientEnvSchema } from "./src/config/env";
 
 const { Pool } = pg;
 const upload = multer({ storage: multer.memoryStorage() });
@@ -682,16 +683,13 @@ async function startServer() {
       if (fs.existsSync(indexPath)) {
         let html = fs.readFileSync(indexPath, "utf8");
         
-        // Collect VITE_ variables from process.env, EXCLUDING sensitive keys
+        // ONLY collect variables that are explicitly defined in the client schema
         const clientEnvs: Record<string, string> = {};
-        const sensitivePatterns = ['PASSWORD', 'SECRET', 'KEY', 'TOKEN', 'HASH'];
+        const clientKeys = Object.keys(clientEnvSchema.shape);
         
-        Object.keys(process.env).forEach(key => {
-          if (key.startsWith('VITE_')) {
-            const isSensitive = sensitivePatterns.some(pattern => key.toUpperCase().includes(pattern));
-            if (!isSensitive) {
-              clientEnvs[key] = process.env[key] || '';
-            }
+        clientKeys.forEach(key => {
+          if (process.env[key] !== undefined) {
+            clientEnvs[key] = process.env[key] || '';
           }
         });
 

@@ -5,7 +5,7 @@ import { z } from 'zod';
  * These are accessible in the browser.
  */
 export const clientEnvSchema = z.object({
-  VITE_APP_NAME: z.string().default('CineStream'),
+  VITE_APP_NAME: z.string(),
   VITE_ADMIN_USERNAME: z.string().nullable().default(null),
   VITE_ADMIN_PASSWORD: z.string().nullable().default(null),
   VITE_ADSENSE_CLIENT_ID: z.string().default('ca-pub-XXXXXXXXXXXXXXXX'),

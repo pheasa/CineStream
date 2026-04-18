@@ -44,12 +44,20 @@ export type ServerEnv = z.infer<typeof serverEnvSchema>;
  * For server-side, we pass process.env.
  */
 export function parseEnv<T extends z.ZodTypeAny>(schema: T, env: any): z.infer<T> {
+  if (!env) {
+    console.error('❌ Environment object is undefined. Ensure environment is loaded.');
+    // Fallback to empty object to let Zod show which specific fields are missing
+    env = {};
+  }
+  
   const parsed = schema.safeParse(env);
   if (!parsed.success) {
-    console.error('❌ Invalid environment variables:', parsed.error.format());
-    // In development, we might want to throw, but for now we'll just return the defaults if possible
-    // safeParse with defaults will still fail if required fields are missing
-    return schema.parse({}); 
+    console.error('❌ Invalid environment variables:', JSON.stringify(parsed.error.format(), null, 2));
+    
+    // In production, we must have these, but we don't want to crash in a way that prevents the user from seeing the error.
+    // However, for required fields, we can't really continue.
+    // We'll throw a clearer error message.
+    throw new Error(`Environment validation failed. Please check your .env or Settings. Missing/Invalid: ${Object.keys(parsed.error.format()).filter(k => k !== '_errors').join(', ')}`);
   }
   return parsed.data;
 }

@@ -1,3 +1,4 @@
+import "./src/config/init";
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
@@ -9,15 +10,6 @@ import FormData from 'form-data';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import dotenv from 'dotenv';
-
-// Load .env file
-dotenv.config();
-
-// Polyfill import.meta.env for consistency with client-side Vite conventions
-if (!(import.meta as any).env) {
-  (import.meta as any).env = process.env;
-}
 
 import serverConfig from "./src/config/server";
 import { clientEnvSchema } from "./src/config/env";

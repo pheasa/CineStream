@@ -674,33 +674,9 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    
-    // Serve static assets EXCEPT index.html
-    app.use(express.static(distPath, { index: false }));
-
+    app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      const indexPath = path.join(distPath, "index.html");
-      if (fs.existsSync(indexPath)) {
-        let html = fs.readFileSync(indexPath, "utf8");
-        
-        // ONLY collect variables that are explicitly defined in the client schema
-        const clientEnvs: Record<string, string> = {};
-        const clientKeys = Object.keys(clientEnvSchema.shape);
-        
-        clientKeys.forEach(key => {
-          if (process.env[key] !== undefined) {
-            clientEnvs[key] = process.env[key] || '';
-          }
-        });
-
-        // Inject window.ENV script
-        const envScript = `<script>window.ENV = ${JSON.stringify(clientEnvs)}</script>`;
-        html = html.replace('<head>', `<head>${envScript}`);
-        
-        res.send(html);
-      } else {
-        res.status(404).send("Industrial Strength Cinema: App not built. Please run 'npm run build' if you want to use production mode.");
-      }
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 

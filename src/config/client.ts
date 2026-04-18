@@ -3,9 +3,13 @@ import { clientEnvSchema, parseEnv, type ClientEnv } from './env';
 /**
  * Validated client-side environment variables.
  * In development, Vite provides these via import.meta.env.
- * In production, we can update these at runtime via an API call.
+ * In production, we start with whatever is available (likely empty) 
+ * and let ConfigLoader update it from the server.
  */
-let currentConfig: ClientEnv = parseEnv(clientEnvSchema, import.meta.env);
+const initialConfig = clientEnvSchema.safeParse(import.meta.env);
+let currentConfig: ClientEnv = initialConfig.success 
+  ? initialConfig.data 
+  : { VITE_APP_NAME: 'CineStream' } as ClientEnv; // Fallback for initial boot
 
 // Export a proxy so that components always get the latest value from currentConfig
 export const clientConfig = new Proxy({} as ClientEnv, {

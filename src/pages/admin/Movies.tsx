@@ -145,7 +145,7 @@ export default function Movies() {
       let finalData = { ...data };
 
       // If thumbnail is a temporary Litterbox URL, move it to Catbox
-      if (data.thumbnail && data.thumbnail.includes('litterbox.catbox.moe')) {
+      if (data.thumbnail && (data.thumbnail.includes('litterbox.catbox.moe') || data.thumbnail.includes('litter.catbox.moe'))) {
         try {
           const permanentUrl = await uploadToCatboxFromUrl(data.thumbnail);
           finalData.thumbnail = permanentUrl;

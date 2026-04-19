@@ -632,7 +632,9 @@ async function startServer() {
       // 1. Upload from URL to Catbox
       const formData = new FormData();
       formData.append('reqtype', 'urlupload');
-      formData.append('userhash', userHash);
+      if (userHash) {
+        formData.append('userhash', userHash);
+      }
       formData.append('url', url);
 
       const uploadResponse = await axios.post('https://catbox.moe/user/api.php', formData, {
@@ -644,17 +646,24 @@ async function startServer() {
         throw new Error('Invalid response from Catbox: ' + permanentUrl);
       }
 
-      // 2. Add to album
-      const fileName = permanentUrl.split('/').pop();
-      const albumData = new FormData();
-      albumData.append('reqtype', 'addtoalbum');
-      albumData.append('userhash', userHash);
-      albumData.append('short', albumShort);
-      albumData.append('files', fileName);
+      // 2. Add to album if both userhash and short are provided
+      if (userHash && albumShort) {
+        const fileName = permanentUrl.split('/').pop();
+        const albumData = new FormData();
+        albumData.append('reqtype', 'addtoalbum');
+        albumData.append('userhash', userHash);
+        albumData.append('short', albumShort);
+        albumData.append('files', fileName);
 
-      await axios.post('https://catbox.moe/user/api.php', albumData, {
-        headers: albumData.getHeaders(),
-      });
+        try {
+          await axios.post('https://catbox.moe/user/api.php', albumData, {
+            headers: albumData.getHeaders(),
+          });
+        } catch (albumError) {
+          console.warn('Failed to add image to Catbox album:', albumError);
+          // Don't fail the whole request if only album addition fails
+        }
+      }
 
       res.json({ url: permanentUrl });
     } catch (error) {

@@ -628,6 +628,9 @@ async function startServer() {
     const userHash = serverConfig.CATBOX_USER_HASH;
     const albumShort = serverConfig.CATBOX_ALBUM_SHORT;
 
+    console.log(`📸 Starting Catbox migration for: ${url}`);
+    console.log(`📂 Target Album: ${albumShort || 'None'}, UserHash: ${userHash ? 'Yes' : 'No'}`);
+
     try {
       // 1. Upload from URL to Catbox
       const formData = new FormData();
@@ -639,9 +642,13 @@ async function startServer() {
 
       const uploadResponse = await axios.post('https://catbox.moe/user/api.php', formData, {
         headers: formData.getHeaders(),
+        // Catbox returns plain text, not JSON
+        responseType: 'text'
       });
 
-      const permanentUrl = uploadResponse.data;
+      const permanentUrl = uploadResponse.data.trim();
+      console.log(`✅ Catbox raw response: ${permanentUrl}`);
+
       if (typeof permanentUrl !== 'string' || !permanentUrl.startsWith('http')) {
         throw new Error('Invalid response from Catbox: ' + permanentUrl);
       }
@@ -649,6 +656,8 @@ async function startServer() {
       // 2. Add to album if both userhash and short are provided
       if (userHash && albumShort) {
         const fileName = permanentUrl.split('/').pop();
+        console.log(`📁 Adding ${fileName} to album ${albumShort}`);
+        
         const albumData = new FormData();
         albumData.append('reqtype', 'addtoalbum');
         albumData.append('userhash', userHash);
@@ -656,19 +665,23 @@ async function startServer() {
         albumData.append('files', fileName);
 
         try {
-          await axios.post('https://catbox.moe/user/api.php', albumData, {
+          const albumResponse = await axios.post('https://catbox.moe/user/api.php', albumData, {
             headers: albumData.getHeaders(),
+            responseType: 'text'
           });
-        } catch (albumError) {
-          console.warn('Failed to add image to Catbox album:', albumError);
-          // Don't fail the whole request if only album addition fails
+          console.log(`✨ Album add response: ${albumResponse.data}`);
+        } catch (albumError: any) {
+          console.warn('⚠️ Failed to add image to Catbox album:', albumError.message);
         }
       }
 
       res.json({ url: permanentUrl });
-    } catch (error) {
-      console.error('Catbox upload/album error:', error);
-      res.status(500).json({ error: "Catbox processing failed" });
+    } catch (error: any) {
+      console.error('❌ Catbox migration error:', error.message);
+      if (error.response) {
+        console.error('❌ Catbox API error response:', error.response.data);
+      }
+      res.status(500).json({ error: "Catbox processing failed: " + error.message });
     }
   });
 

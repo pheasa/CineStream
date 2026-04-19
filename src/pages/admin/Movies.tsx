@@ -149,9 +149,12 @@ export default function Movies() {
         try {
           const permanentUrl = await uploadToCatboxFromUrl(data.thumbnail);
           finalData.thumbnail = permanentUrl;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to move image to Catbox:', error);
-          // Continue with Litterbox URL if Catbox fails, though it will expire
+          const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+          alert(`CRITICAL: Failed to move temporary image to permanent storage.\nError: ${errorMsg}\n\nYour movie was NOT saved to prevent broken images. Please try again.`);
+          setLoading(false);
+          return; // STOP SAVE! Direct return to avoid saving temporary URL
         }
       }
 

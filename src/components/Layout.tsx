@@ -150,7 +150,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
       </nav>
 
       {/* Top Ad Slot - Moved below nav and made more subtle */}
-      {!hideAds && (
+      {!hideAds && clientConfig.VITE_ADSENSE_TOP_SLOT && (
         <div className="bg-slate-900/5 border-b border-slate-800/20 py-1 flex items-center justify-center">
           <AdSense slot={clientConfig.VITE_ADSENSE_TOP_SLOT} className="w-full max-w-4xl opacity-60 hover:opacity-100 transition-opacity" />
         </div>
@@ -165,7 +165,7 @@ export default function Layout({ children, isAdmin = false }: LayoutProps) {
       </main>
 
       {/* Bottom Ad Slot */}
-      {!hideAds && (
+      {!hideAds && clientConfig.VITE_ADSENSE_BOTTOM_SLOT && (
         <div className="bg-slate-900/20 border-t border-slate-800/50 py-4 flex items-center justify-center min-h-[100px]">
           <AdSense slot={clientConfig.VITE_ADSENSE_BOTTOM_SLOT} className="w-full max-w-6xl" />
         </div>

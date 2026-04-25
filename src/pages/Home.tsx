@@ -156,9 +156,11 @@ export default function Home() {
       </section>
 
       {/* Mid-Page Ad Banner */}
-      <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px]">
-        <AdSense slot={clientConfig.VITE_ADSENSE_HOME_MID_SLOT} className="w-full" />
-      </div>
+      {clientConfig.VITE_ADSENSE_HOME_MID_SLOT && (
+        <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px]">
+          <AdSense slot={clientConfig.VITE_ADSENSE_HOME_MID_SLOT} className="w-full" />
+        </div>
+      )}
 
       {/* Latest Movies */}
       <section className="space-y-6">
@@ -185,9 +187,11 @@ export default function Home() {
       </section>
 
       {/* Bottom Ad Banner */}
-      <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px]">
-        <AdSense slot={clientConfig.VITE_ADSENSE_HOME_BOTTOM_SLOT} className="w-full" />
-      </div>
+      {clientConfig.VITE_ADSENSE_HOME_BOTTOM_SLOT && (
+        <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[100px]">
+          <AdSense slot={clientConfig.VITE_ADSENSE_HOME_BOTTOM_SLOT} className="w-full" />
+        </div>
+      )}
     </div>
   );
 }

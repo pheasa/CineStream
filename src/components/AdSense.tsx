@@ -14,7 +14,7 @@ export default function AdSense({ slot, format = 'auto', className }: AdSensePro
   const adClient = clientConfig.VITE_ADSENSE_CLIENT_ID;
 
   React.useEffect(() => {
-    if (initialized.current) return;
+    if (!slot || initialized.current) return;
     
     // Inject AdSense script if not present
     if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
@@ -47,6 +47,8 @@ export default function AdSense({ slot, format = 'auto', className }: AdSensePro
 
     return () => observer.disconnect();
   }, [adClient]);
+
+  if (!slot) return null;
 
   return (
     <div ref={adRef} className={cn("relative group", className)}>

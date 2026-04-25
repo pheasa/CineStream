@@ -109,9 +109,11 @@ export default function Watch() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Top of Player Ad */}
-          <div className="bg-slate-900/10 border border-slate-800/30 rounded-xl p-2 flex items-center justify-center min-h-[50px]">
-            <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_TOP_SLOT} className="w-full" />
-          </div>
+          {clientConfig.VITE_ADSENSE_WATCH_TOP_SLOT && (
+            <div className="bg-slate-900/10 border border-slate-800/30 rounded-xl p-2 flex items-center justify-center min-h-[50px]">
+              <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_TOP_SLOT} className="w-full" />
+            </div>
+          )}
 
           {/* Video Player */}
           <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
@@ -122,9 +124,11 @@ export default function Watch() {
           </div>
 
           {/* Bottom of Player Ad */}
-          <div className="bg-slate-900/10 border border-slate-800/30 rounded-xl p-2 flex items-center justify-center min-h-[50px]">
-            <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_PLAYER_BOTTOM_SLOT} className="w-full" />
-          </div>
+          {clientConfig.VITE_ADSENSE_WATCH_PLAYER_BOTTOM_SLOT && (
+            <div className="bg-slate-900/10 border border-slate-800/30 rounded-xl p-2 flex items-center justify-center min-h-[50px]">
+              <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_PLAYER_BOTTOM_SLOT} className="w-full" />
+            </div>
+          )}
 
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -222,9 +226,11 @@ export default function Watch() {
           </div>
 
           {/* Ad Banner */}
-          <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[200px]">
-            <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_SLOT} format="rectangle" className="w-full" />
-          </div>
+          {clientConfig.VITE_ADSENSE_WATCH_SLOT && (
+            <div className="bg-slate-900/10 border border-slate-800/30 rounded-2xl p-4 flex items-center justify-center min-h-[200px]">
+              <AdSense slot={clientConfig.VITE_ADSENSE_WATCH_SLOT} format="rectangle" className="w-full" />
+            </div>
+          )}
         </div>
       </div>
 

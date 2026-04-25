@@ -31,7 +31,7 @@ export default function AdOverlay({ slot, type, isOpen, onClose, title, delay = 
     }
   }, [isOpen, delay]);
 
-  if (!shouldShow) return null;
+  if (!shouldShow || !slot) return null;
 
   return (
     <div 
